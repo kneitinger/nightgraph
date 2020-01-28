@@ -1,0 +1,12 @@
+[package]
+name = "knart"
+version = "0.1.0"
+authors = ["Kyle Kneitinger <kyle@kneit.in>"]
+edition = "2018"
+description = "Utilities for creating art"
+
+[dependencies]
+svg = "0.6.0"
+euclid = "0.20.3"
+itertools = "0.8.2"
+num-traits = "0.2.11"
