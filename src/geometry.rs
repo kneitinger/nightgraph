@@ -1,7 +1,6 @@
 use euclid::{Angle, Box2D, Point2D, Rotation2D};
 use itertools::Itertools;
 use num_traits::ToPrimitive;
-use std::thread;
 use svg::node::element::{path::Data, Path};
 
 pub struct PageSpace;
@@ -27,19 +26,6 @@ pub struct Line {
 impl Line {
     pub fn new(a: Point, b: Point) -> Line {
         Line { a, b }
-    }
-
-    pub fn to_path(&self) -> Path {
-        Path::new()
-            .set("fill", "none")
-            .set("stroke", "black")
-            .set("stroke-width", "0.25mm")
-            .set(
-                "d",
-                Data::new()
-                    .move_to(self.a.to_tuple())
-                    .line_to(self.b.to_tuple()),
-            )
     }
 
     fn lerp(&self, t: f64) -> Point {
