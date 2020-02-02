@@ -1,6 +1,7 @@
 use crate::geometry::PageSpace;
 use crate::geometry::Pathable;
 use euclid::Size2D;
+use std::fmt;
 use svg::node::element::Text;
 use svg::node::Text as PrimitiveText;
 use svg::Document;
@@ -19,16 +20,8 @@ pub const CM: f64 = MM * 10.;
 pub const PT: f64 = INCH / 72.;
 
 impl PageUnit {
-    pub fn to_string(&self) -> String {
-        match self {
-            PageUnit::Px => "px".to_string(),
-            PageUnit::Mm => "mm".to_string(),
-            PageUnit::In => "in".to_string(),
-        }
-    }
-
     pub fn to_string_with_val(&self, n: f64) -> String {
-        format!("{}{}", n, self.to_string())
+        format!("{}{}", n, self)
     }
 
     pub fn scale(&self) -> f64 {
@@ -37,6 +30,20 @@ impl PageUnit {
             PageUnit::Mm => 3.77953,
             PageUnit::In => 96.,
         }
+    }
+}
+
+impl fmt::Display for PageUnit {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                PageUnit::Px => "px",
+                PageUnit::Mm => "mm",
+                PageUnit::In => "in",
+            }
+        )
     }
 }
 
