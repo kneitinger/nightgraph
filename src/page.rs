@@ -11,12 +11,12 @@ pub enum PageUnit {
     In,
 }
 
-const dpi: f64 = 96.;
-const inch: f64 = dpi;
-const px: f64 = 1.;
-const mm: f64 = dpi / 25.4; // 1in == 25.4mm
-const cm: f64 = mm * 10.;
-const pt: f64 = inch / 72.;
+pub const DPI: f64 = 96.;
+pub const INCH: f64 = DPI;
+pub const PX: f64 = 1.;
+pub const MM: f64 = DPI / 25.4; // 1in == 25.4mm
+pub const CM: f64 = MM * 10.;
+pub const PT: f64 = INCH / 72.;
 
 impl PageUnit {
     pub fn to_string(&self) -> String {
@@ -50,19 +50,19 @@ pub enum PageType {
 impl PageType {
     pub fn dimensions(&self) -> Size2D<f64, PageSpace> {
         match self {
-            PageType::BlackPad => Size2D::new(20.7 * cm, 29.35 * cm),
-            PageType::A6 => Size2D::new(105. * mm, 148. * mm),
-            PageType::A4 => Size2D::new(210. * mm, 297. * mm),
-            PageType::Other(w, h, _) => Size2D::new(w * mm, h * mm),
+            PageType::BlackPad => Size2D::new(20.7 * CM, 29.35 * CM),
+            PageType::A6 => Size2D::new(105. * MM, 148. * MM),
+            PageType::A4 => Size2D::new(210. * MM, 297. * MM),
+            PageType::Other(w, h, _) => Size2D::new(w * MM, h * MM),
         }
     }
 }
 
 pub struct Page {
     doc: Document,
-    width: f64,
-    height: f64,
-    unit: PageUnit,
+    //width: f64,
+    //height: f64,
+    //unit: PageUnit,
 }
 
 impl Page {
@@ -80,9 +80,9 @@ impl Page {
             doc: Document::new()
                 .set("width", unit.to_string_with_val(width))
                 .set("height", unit.to_string_with_val(height)),
-            width,
-            height,
-            unit,
+            //width,
+            //height,
+            //unit,
         }
     }
 
