@@ -25,7 +25,7 @@ pub struct Line {
 
 impl Line {
     pub fn new(a: Point, b: Point) -> Line {
-        Line { a, b }
+        Self { a, b }
     }
 
     fn lerp(&self, t: f64) -> Point {
@@ -58,7 +58,7 @@ pub struct Bezier {
     c1: Point,
     c2: Point,
     b: Point,
-    _steps: u64,
+    steps: u64,
 }
 
 /// Represents the ability to be converted to a path, with optional hatch fill.
@@ -138,22 +138,22 @@ impl Pathable for Poly {
 
 impl Bezier {
     pub fn new(a: Point, c1: Point, c2: Point, b: Point) -> Bezier {
-        Bezier {
+        Self {
             a,
             c1,
             c2,
             b,
-            _steps: 30,
+            steps: 30,
         }
     }
 
     pub fn new_with_steps(a: Point, c1: Point, c2: Point, b: Point, steps: u64) -> Bezier {
-        Bezier {
+        Self {
             a,
             c1,
             c2,
             b,
-            _steps: steps,
+            steps: steps,
         }
     }
 
@@ -192,9 +192,9 @@ impl Pathable for Bezier {
                 decasteljau(new_lines, t)
             }
         }
-        let delta = 1.0 / self._steps as f64;
+        let delta = 1.0 / self.steps as f64;
 
-        (0..=self._steps)
+        (0..=self.steps)
             .map(|n| decasteljau(self.bounds(), 1.0 - (delta * n as f64)))
             .collect()
     }
@@ -213,19 +213,19 @@ impl Pathable for Bezier {
 
 impl Poly {
     pub fn new(points: Vec<Point>) -> Poly {
-        Poly { points }
+        Self { points }
     }
 
     pub fn rotated(&self, angle: f64) -> Poly {
         let r = Rotation2D::new(Angle::degrees(angle));
-        Poly {
+        Self {
             points: self.points.iter().map(|p| r.transform_point(*p)).collect(),
         }
     }
 
     /// Returns `true` if the point is within the path of the polygon.
     ///
-    /// Reference: https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
+    /// [Reference article](https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html)
     pub fn contains_point(&self, p: Point) -> bool {
         let mut crossed = false;
 

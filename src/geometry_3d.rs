@@ -31,13 +31,14 @@ pub struct Path3 {
 
 impl Path3 {
     pub fn new(verticies: Vec<Point3>) -> Path3 {
-        Path3 { verticies }
+        Self { verticies }
     }
 
-    pub fn new_closed(verticies: Vec<Point3>) -> Path3 {
-        let mut closed_verts = verticies.clone();
+    pub fn new_closed(verticies: &[Point3]) -> Path3 {
+        let mut closed_verts = Vec::new();
+        closed_verts.extend_from_slice(verticies);
         closed_verts.push(verticies[0]);
-        Path3 {
+        Self {
             verticies: closed_verts,
         }
     }
@@ -48,7 +49,7 @@ impl Path3 {
             &point3(0., 0., 0.),
             &Vector3::new(0., 1., 0.),
         );
-        Path3 {
+        Self {
             verticies: self
                 .verticies
                 .iter()
