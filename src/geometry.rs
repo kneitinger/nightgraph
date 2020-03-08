@@ -54,6 +54,7 @@ impl Pathable for Line {
         vec![]
     }
 }
+
 pub struct Bezier {
     a: Point,
     c1: Point,
@@ -262,5 +263,40 @@ impl Poly {
             j = i
         }
         crossed
+    }
+}
+
+#[derive(Debug)]
+pub struct MultiLine {
+    points: Vec<Point>,
+}
+
+impl MultiLine {
+    pub fn new(points: Vec<Point>) -> MultiLine {
+        Self { points }
+    }
+}
+
+impl Pathable for MultiLine {
+    fn to_points(&self) -> Vec<Point> {
+        self.points.clone()
+    }
+
+    fn to_path(&self) -> SvgPath {
+        let mut d = Data::new().move_to(self.points[0].to_tuple());
+        self.points
+            .iter()
+            .skip(1)
+            .for_each(|p| d = d.clone().line_to(p.to_tuple()));
+
+        SvgPath::new()
+            .set("fill", "none")
+            .set("stroke", "black")
+            .set("stroke-width", "0.5mm")
+            .set("d", d)
+    }
+
+    fn hatch(&self, _spacing: f64, _inset: f64, _angle: f64) -> Vec<Line> {
+        vec![]
     }
 }
