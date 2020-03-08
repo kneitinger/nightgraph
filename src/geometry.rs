@@ -1,7 +1,7 @@
 use euclid::{Angle, Box2D, Point2D, Rotation2D};
 use itertools::Itertools;
 use num_traits::ToPrimitive;
-use svg::node::element::{path::Data, Path};
+use svg::node::element::{path::Data, Path as SvgPath};
 
 pub struct PageSpace;
 
@@ -38,17 +38,18 @@ impl Pathable for Line {
         vec![self.a, self.b]
     }
 
-    fn to_path(&self) -> Path {
+    fn to_path(&self) -> SvgPath {
         let d = Data::new()
             .move_to(self.a.to_tuple())
             .line_to(self.b.to_tuple());
 
-        Path::new()
+        SvgPath::new()
             .set("fill", "none")
             .set("stroke", "black")
             .set("stroke-width", "0.5mm")
             .set("d", d)
     }
+
     fn hatch(&self, _spacing: f64, _inset: f64, _angle: f64) -> Vec<Line> {
         vec![]
     }
@@ -65,7 +66,7 @@ pub struct Bezier {
 pub trait Pathable {
     /// Returns the verticies of the line decomposition of the shape
     fn to_points(&self) -> Vec<Point>;
-    fn to_path(&self) -> Path;
+    fn to_path(&self) -> SvgPath;
     fn hatch(&self, spacing: f64, inset: f64, angle: f64) -> Vec<Line> {
         let r = Rotation2D::new(Angle::degrees(angle));
 
@@ -121,14 +122,14 @@ impl Pathable for Poly {
         self.points.clone()
     }
 
-    fn to_path(&self) -> Path {
+    fn to_path(&self) -> SvgPath {
         let mut d = Data::new().move_to(self.points[0].to_tuple());
         for i in 1..self.points.len() {
             d = d.line_to(self.points[i].to_tuple());
         }
         d = d.close();
 
-        Path::new()
+        SvgPath::new()
             .set("fill", "none")
             .set("stroke", "black")
             .set("stroke-width", "0.5mm")
@@ -199,11 +200,11 @@ impl Pathable for Bezier {
             .collect()
     }
 
-    fn to_path(&self) -> Path {
+    fn to_path(&self) -> SvgPath {
         let mut d = Data::new().move_to(self.a.to_tuple());
         d = d.cubic_curve_to((self.c1.to_tuple(), self.c2.to_tuple(), self.b.to_tuple()));
 
-        Path::new()
+        SvgPath::new()
             .set("fill", "none")
             .set("stroke", "black")
             .set("stroke-width", "0.5mm")
