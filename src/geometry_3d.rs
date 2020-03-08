@@ -42,17 +42,13 @@ impl Path3 {
         }
     }
 
-    pub fn projected(&self) -> Path3 {
-        let look = Matrix4::face_towards(
-            &point3(60., 50., -80.),
-            &point3(0., 0., 0.),
-            &Vector3::new(0., 1., 0.),
-        );
+    pub fn projected(&self, observer: &Point3, target: &Point3) -> Path3 {
+        let viewer = Matrix4::face_towards(observer, target, &Vector3::new(0., 1., 0.));
         Self {
             verticies: self
                 .verticies
                 .iter()
-                .map(|p| look.transform_point(p))
+                .map(|p| viewer.transform_point(p))
                 .collect(),
         }
     }
