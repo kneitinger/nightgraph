@@ -1,5 +1,4 @@
-use crate::{Line, Point};
-use itertools::Itertools;
+use crate::{MultiLine, Point};
 use nalgebra::Point3 as nPoint3;
 use nalgebra::{Matrix4, Vector3};
 use num_traits::ToPrimitive;
@@ -58,11 +57,7 @@ impl Path3 {
         }
     }
 
-    pub fn flatten(&self) -> Vec<Line> {
-        self.verticies
-            .iter()
-            .tuple_windows()
-            .map(|(a, b)| Line::new(np2_to_point(*a), np2_to_point(*b)))
-            .collect()
+    pub fn flatten(&self) -> MultiLine {
+        MultiLine::new(self.verticies.iter().map(|p| np2_to_point(*p)).collect())
     }
 }
