@@ -9,6 +9,7 @@ pub type Point3 = nPoint3<f64>;
 
 /// Convenience function to allow making `Point`s quickly
 /// from any compatible number type
+#[inline(always)]
 pub fn point3<T: ToPrimitive, U: ToPrimitive, V: ToPrimitive>(x: T, y: U, z: V) -> Point3 {
     Point3::new(
         x.to_f64().unwrap(),
