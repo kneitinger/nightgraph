@@ -1,10 +1,13 @@
 use crate::geometry::{PageSpace, Pathable};
 use crate::units::*;
 use euclid::Size2D;
-use svg::node::element::Text;
-use svg::node::Node;
-use svg::node::Text as PrimitiveText;
-use svg::Document;
+use svg::{
+    node::{
+        element::{Group as PrimitiveGroup, Text},
+        Node, Text as PrimitiveText,
+    },
+    Document,
+};
 
 pub enum PageType {
     BlackPad,
@@ -45,6 +48,29 @@ pub struct Page {
     */
 }
 
+pub struct Group {
+    raw_group: PrimitiveGroup,
+    //color: Color
+}
+
+// Todo: change pathable to mean addable, so that groups can be added the same way
+impl Group {
+    pub fn new(name: &str) -> Self {
+        let raw_group = PrimitiveGroup::new()
+            .set("inkscape:groupmode", "layer")
+            .set("inkscape:label", name);
+        Group { raw_group }
+    }
+
+    pub fn add<T: Pathable>(&mut self, p: &T) {
+        self.raw_group.append(p.to_path());
+    }
+
+    fn get_raw(&self) -> PrimitiveGroup {
+        self.raw_group.clone()
+    }
+}
+
 impl Page {
     pub fn add<T: Pathable>(&mut self, p: &T) {
         self.doc.append(p.to_path());
@@ -53,6 +79,10 @@ impl Page {
     pub fn add_comment<T: Into<String>>(&mut self, content: T) {
         let text = Text::new().add(PrimitiveText::new(content));
         self.doc.append(text);
+    }
+
+    pub fn add_group(&mut self, group: Group) {
+        self.doc.append(group.get_raw());
     }
 
     pub fn new(width: f64, height: f64, unit: Unit) -> Page {
