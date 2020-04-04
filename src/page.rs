@@ -69,6 +69,12 @@ impl Page {
     }
 
     pub fn save<T: AsRef<std::path::Path>>(&self, filepath: T) {
-        svg::save(filepath, &self.doc).expect("sdfds");
+        svg::save(filepath, &self.doc).expect("Unable to save SVG");
+    }
+
+    pub fn write(&self) -> Vec<u8> {
+        let mut vec = Vec::new();
+        svg::write(&mut vec, &self.doc).expect("Unable to write SVG to bytestream");
+        vec
     }
 }
