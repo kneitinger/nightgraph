@@ -14,6 +14,7 @@ pub enum PageType {
     A4,
     A6,
     Pad11x14,
+    Envelope10,
     Other(f64, f64, Unit),
 }
 
@@ -24,6 +25,7 @@ impl PageType {
             Self::A6 => Size2D::new(105., 148.),         // mm
             Self::A4 => Size2D::new(210., 297.),         // mm
             Self::Pad11x14 => Size2D::new(11., 14.),     // in
+            Self::Envelope10 => Size2D::new(9.5, 4.125), // in
             Self::Other(w, h, _) => Size2D::new(*w, *h), // other
         }
     }
@@ -34,6 +36,7 @@ impl PageType {
             Self::A6 => Unit::Cm,
             Self::A4 => Unit::Cm,
             Self::Pad11x14 => Unit::In,
+            Self::Envelope10 => Unit::In,
             Self::Other(_, _, u) => *u,
         }
     }
@@ -50,7 +53,6 @@ pub struct Page {
 
 pub struct Group {
     raw_group: PrimitiveGroup,
-    //color: Color
 }
 
 // Todo: change pathable to mean addable, so that groups can be added the same way
