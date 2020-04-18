@@ -13,10 +13,6 @@ pub fn point<T: ToPrimitive, U: ToPrimitive>(x: T, y: U) -> Point {
     Point::new(x.to_f64().unwrap(), y.to_f64().unwrap())
 }
 
-pub struct Poly {
-    points: Vec<Point>,
-}
-
 #[derive(Debug)]
 pub struct Line {
     a: Point,
@@ -61,81 +57,6 @@ pub struct Bezier {
     c2: Point,
     b: Point,
     steps: u64,
-}
-
-/// Represents the ability to be converted to a path, with optional hatch fill.
-pub trait Pathable {
-    /// Returns the verticies of the line decomposition of the shape
-    fn to_points(&self) -> Vec<Point>;
-    fn to_path(&self) -> SvgPath;
-    fn hatch(&self, spacing: f64, inset: f64, angle: f64) -> Vec<Line> {
-        let r = Rotation2D::new(Angle::degrees(angle));
-
-        let points: Vec<Point> = self
-            .to_points()
-            .iter()
-            .map(|p| r.transform_point(*p))
-            .collect();
-        let bb = Box2D::from_points(&points);
-        let min_y = bb.min.y;
-        let max_y = bb.max.y;
-
-        let mut lines: Vec<Line> = vec![];
-
-        let num_lines = ((max_y - min_y) / spacing) as usize;
-        for n_y in 0..num_lines {
-            let y = min_y + spacing * n_y as f64;
-
-            let mut j = points.len() - 1;
-            let mut x_vals = vec![];
-            for i in 0..points.len() {
-                let a = points[i];
-                let b = points[j];
-
-                if a.y < y && b.y >= y || b.y < y && a.y >= y {
-                    x_vals.push(a.x + (y - a.y) / (b.y - a.y) * (b.x - a.x));
-                }
-                j = i;
-            }
-
-            x_vals.sort_by(|a, b| a.partial_cmp(b).unwrap());
-
-            assert!(x_vals.len() % 2 == 0);
-            for n in (1..=x_vals.len()).step_by(2) {
-                let line = Line::new(
-                    r.inverse()
-                        .transform_point(Point::new(x_vals[n - 1] + inset, y)),
-                    r.inverse()
-                        .transform_point(Point::new(x_vals[n] - inset, y)),
-                );
-                if line.b.x - line.a.x > inset * 2. {
-                    lines.push(line);
-                }
-            }
-        }
-
-        lines
-    }
-}
-
-impl Pathable for Poly {
-    fn to_points(&self) -> Vec<Point> {
-        self.points.clone()
-    }
-
-    fn to_path(&self) -> SvgPath {
-        let mut d = Data::new().move_to(self.points[0].to_tuple());
-        for i in 1..self.points.len() {
-            d = d.line_to(self.points[i].to_tuple());
-        }
-        d = d.close();
-
-        SvgPath::new()
-            .set("fill", "none")
-            .set("stroke", "black")
-            .set("stroke-width", "0.5mm")
-            .set("d", d)
-    }
 }
 
 impl Bezier {
@@ -213,6 +134,46 @@ impl Pathable for Bezier {
     }
 }
 
+#[derive(Debug)]
+pub struct MultiLine {
+    points: Vec<Point>,
+}
+
+impl MultiLine {
+    pub fn new(points: Vec<Point>) -> MultiLine {
+        Self { points }
+    }
+}
+
+impl Pathable for MultiLine {
+    fn to_points(&self) -> Vec<Point> {
+        self.points.clone()
+    }
+
+    fn to_path(&self) -> SvgPath {
+        let mut d = Data::new().move_to(self.points[0].to_tuple());
+        self.points
+            .iter()
+            .skip(1)
+            .for_each(|p| d = d.clone().line_to(p.to_tuple()));
+
+        SvgPath::new()
+            .set("fill", "none")
+            .set("stroke", "black")
+            .set("stroke-width", "0.5mm")
+            .set("d", d)
+    }
+
+    fn hatch(&self, _spacing: f64, _inset: f64, _angle: f64) -> Vec<Line> {
+        vec![]
+    }
+}
+
+#[derive(Debug)]
+pub struct Poly {
+    points: Vec<Point>,
+}
+
 impl Poly {
     pub fn new(points: Vec<Point>) -> Poly {
         Self { points }
@@ -223,6 +184,50 @@ impl Poly {
         Self {
             points: self.points.iter().map(|p| r.transform_point(*p)).collect(),
         }
+    }
+
+    pub fn new_from_points(points: Vec<Point>) -> Option<Poly> {
+        fn is_counterclockwise(p: &Point, q: &Point, r: &Point) -> bool {
+            (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y) < 0.
+        }
+
+        //There must be at least 3 points
+        if points.len() < 3 {
+            return None;
+        }
+
+        let mut hull = vec![];
+
+        //Find the left most point in the polygon
+        let (left_most_idx, _) = points
+            .iter()
+            .enumerate()
+            .min_by(|lhs, rhs| lhs.1.x.partial_cmp(&rhs.1.x).unwrap())
+            .expect("No left most point");
+
+        let mut p = left_most_idx;
+
+        loop {
+            //The left most point must be part of the hull
+            hull.push(points[p].clone());
+
+            let mut q = (p + 1) % points.len();
+
+            for i in 0..points.len() {
+                if is_counterclockwise(&points[p], &points[i], &points[q]) {
+                    q = i;
+                }
+            }
+
+            p = q;
+
+            //Break from loop once we reach the first point again
+            if p == left_most_idx {
+                break;
+            }
+        }
+
+        Some(Poly::new(hull))
     }
 
     /// Returns `true` if the point is within the path of the polygon.
@@ -266,28 +271,17 @@ impl Poly {
     }
 }
 
-#[derive(Debug)]
-pub struct MultiLine {
-    points: Vec<Point>,
-}
-
-impl MultiLine {
-    pub fn new(points: Vec<Point>) -> MultiLine {
-        Self { points }
-    }
-}
-
-impl Pathable for MultiLine {
+impl Pathable for Poly {
     fn to_points(&self) -> Vec<Point> {
         self.points.clone()
     }
 
     fn to_path(&self) -> SvgPath {
         let mut d = Data::new().move_to(self.points[0].to_tuple());
-        self.points
-            .iter()
-            .skip(1)
-            .for_each(|p| d = d.clone().line_to(p.to_tuple()));
+        for i in 1..self.points.len() {
+            d = d.line_to(self.points[i].to_tuple());
+        }
+        d = d.close();
 
         SvgPath::new()
             .set("fill", "none")
@@ -295,8 +289,59 @@ impl Pathable for MultiLine {
             .set("stroke-width", "0.5mm")
             .set("d", d)
     }
+}
 
-    fn hatch(&self, _spacing: f64, _inset: f64, _angle: f64) -> Vec<Line> {
-        vec![]
+/// Represents the ability to be converted to a path, with optional hatch fill.
+pub trait Pathable {
+    /// Returns the verticies of the line decomposition of the shape
+    fn to_points(&self) -> Vec<Point>;
+    fn to_path(&self) -> SvgPath;
+    fn hatch(&self, spacing: f64, inset: f64, angle: f64) -> Vec<Line> {
+        let r = Rotation2D::new(Angle::degrees(angle));
+
+        let points: Vec<Point> = self
+            .to_points()
+            .iter()
+            .map(|p| r.transform_point(*p))
+            .collect();
+        let bb = Box2D::from_points(&points);
+        let min_y = bb.min.y;
+        let max_y = bb.max.y;
+
+        let mut lines: Vec<Line> = vec![];
+
+        let num_lines = ((max_y - min_y) / spacing) as usize;
+        for n_y in 0..num_lines {
+            let y = min_y + spacing * n_y as f64;
+
+            let mut j = points.len() - 1;
+            let mut x_vals = vec![];
+            for i in 0..points.len() {
+                let a = points[i];
+                let b = points[j];
+
+                if a.y < y && b.y >= y || b.y < y && a.y >= y {
+                    x_vals.push(a.x + (y - a.y) / (b.y - a.y) * (b.x - a.x));
+                }
+                j = i;
+            }
+
+            x_vals.sort_by(|a, b| a.partial_cmp(b).unwrap());
+
+            assert!(x_vals.len() % 2 == 0);
+            for n in (1..=x_vals.len()).step_by(2) {
+                let line = Line::new(
+                    r.inverse()
+                        .transform_point(Point::new(x_vals[n - 1] + inset, y)),
+                    r.inverse()
+                        .transform_point(Point::new(x_vals[n] - inset, y)),
+                );
+                if line.b.x - line.a.x > inset * 2. {
+                    lines.push(line);
+                }
+            }
+        }
+
+        lines
     }
 }
