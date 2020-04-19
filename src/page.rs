@@ -59,12 +59,12 @@ pub struct Group {
 impl Group {
     pub fn new(name: &str) -> Self {
         let raw_group = PrimitiveGroup::new()
-            .set("inkscape:groupmode", "layer")
-            .set("inkscape:label", name);
+            .set("groupmode", "layer")
+            .set("label", name);
         Group { raw_group }
     }
 
-    pub fn add<T: Pathable>(&mut self, p: &T) {
+    pub fn add<U: Node, T: Pathable<U>>(&mut self, p: &T) {
         self.raw_group.append(p.to_path());
     }
 
@@ -74,7 +74,7 @@ impl Group {
 }
 
 impl Page {
-    pub fn add<T: Pathable>(&mut self, p: &T) {
+    pub fn add<U: Node, T: Pathable<U>>(&mut self, p: &T) {
         self.doc.append(p.to_path());
     }
 
@@ -83,7 +83,7 @@ impl Page {
         self.doc.append(text);
     }
 
-    pub fn add_group(&mut self, group: Group) {
+    pub fn add_group(&mut self, group: &Group) {
         self.doc.append(group.get_raw());
     }
 

@@ -1,7 +1,8 @@
 use euclid::{Angle, Box2D, Point2D, Rotation2D};
 use itertools::Itertools;
 use num_traits::ToPrimitive;
-use svg::node::element::{path::Data, Path as SvgPath};
+use svg::node::element::{path::Data, Circle as SvgCircle, Path as SvgPath};
+use svg::node::Node;
 
 pub struct PageSpace;
 
@@ -29,7 +30,7 @@ impl Line {
     }
 }
 
-impl Pathable for Line {
+impl Pathable<SvgPath> for Line {
     fn to_points(&self) -> Vec<Point> {
         vec![self.a, self.b]
     }
@@ -51,6 +52,37 @@ impl Pathable for Line {
     }
 }
 
+#[derive(Debug)]
+pub struct Circle {
+    center: Point,
+    radius: f64,
+}
+
+impl Circle {
+    pub fn new(center: Point, radius: f64) -> Circle {
+        Self { center, radius }
+    }
+}
+
+impl Pathable<SvgCircle> for Circle {
+    fn to_points(&self) -> Vec<Point> {
+        vec![self.center]
+    }
+
+    fn to_path(&self) -> SvgCircle {
+        SvgCircle::new()
+            .set("fill", "none")
+            .set("stroke", "black")
+            .set("stroke-width", "0.5mm")
+            .set("cx", self.center.x)
+            .set("cy", self.center.y)
+            .set("r", self.radius)
+    }
+
+    fn hatch(&self, _spacing: f64, _inset: f64, _angle: f64) -> Vec<Line> {
+        vec![]
+    }
+}
 pub struct Bezier {
     a: Point,
     c1: Point,
@@ -97,7 +129,7 @@ impl Bezier {
     }
 }
 
-impl Pathable for Bezier {
+impl Pathable<SvgPath> for Bezier {
     fn to_points(&self) -> Vec<Point> {
         fn decasteljau(lines: Vec<Line>, t: f64) -> Point {
             let new_lines: Vec<Line> = lines
@@ -145,7 +177,7 @@ impl MultiLine {
     }
 }
 
-impl Pathable for MultiLine {
+impl Pathable<SvgPath> for MultiLine {
     fn to_points(&self) -> Vec<Point> {
         self.points.clone()
     }
@@ -271,7 +303,7 @@ impl Poly {
     }
 }
 
-impl Pathable for Poly {
+impl Pathable<SvgPath> for Poly {
     fn to_points(&self) -> Vec<Point> {
         self.points.clone()
     }
@@ -292,10 +324,10 @@ impl Pathable for Poly {
 }
 
 /// Represents the ability to be converted to a path, with optional hatch fill.
-pub trait Pathable {
+pub trait Pathable<T: Node> {
     /// Returns the verticies of the line decomposition of the shape
     fn to_points(&self) -> Vec<Point>;
-    fn to_path(&self) -> SvgPath;
+    fn to_path(&self) -> T;
     fn hatch(&self, spacing: f64, inset: f64, angle: f64) -> Vec<Line> {
         let r = Rotation2D::new(Angle::degrees(angle));
 
