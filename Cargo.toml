@@ -6,8 +6,8 @@ edition = "2018"
 description = "Utilities for creating art"
 
 [dependencies]
-svg = "0.6.0"
-euclid = "0.20.3"
-itertools = "0.8.2"
+svg = "0.7.2"
+euclid = "0.20.10"
+itertools = "0.9.0"
 num-traits = "0.2.11"
-nalgebra = "0.18"
+nalgebra = "0.21.0"
