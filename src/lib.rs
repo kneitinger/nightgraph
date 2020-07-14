@@ -4,9 +4,9 @@
 pub mod geometry;
 pub mod geometry_3d;
 pub mod page;
+pub mod prelude;
 pub mod units;
-pub use geometry::*;
-pub use units::*;
+pub use geometry::{MultiLine, Point};
 
 #[cfg(test)]
 mod tests {

@@ -42,15 +42,6 @@ impl PageType {
     }
 }
 
-pub struct Page {
-    doc: Document,
-    /* For future use
-    _width: f64,
-    _height: f64,
-    _unit: Unit,
-    */
-}
-
 pub struct Group {
     raw_group: PrimitiveGroup,
 }
@@ -73,7 +64,30 @@ impl Group {
     }
 }
 
+pub struct Page {
+    doc: Document,
+    width: f64,
+    height: f64,
+    unit: Unit,
+}
+
 impl Page {
+    pub fn new(width: f64, height: f64, unit: Unit) -> Page {
+        Self {
+            doc: Document::new()
+                .set("width", unit.to_string_with_val(width))
+                .set("height", unit.to_string_with_val(height)),
+            width: width * unit.scale(),
+            height: height * unit.scale(),
+            unit,
+        }
+    }
+
+    pub fn new_from_pagetype(pagetype: PageType) -> Page {
+        let dimensions = pagetype.dimensions();
+        Page::new(dimensions.width, dimensions.height, pagetype.unit())
+    }
+
     pub fn add<U: Node, T: Pathable<U>>(&mut self, p: &T) {
         self.doc.append(p.to_path());
     }
@@ -87,19 +101,6 @@ impl Page {
         self.doc.append(group.get_raw());
     }
 
-    pub fn new(width: f64, height: f64, unit: Unit) -> Page {
-        Self {
-            doc: Document::new()
-                .set("width", unit.to_string_with_val(width))
-                .set("height", unit.to_string_with_val(height)),
-        }
-    }
-
-    pub fn new_from_pagetype(pagetype: PageType) -> Page {
-        let dimensions = pagetype.dimensions();
-        Page::new(dimensions.width, dimensions.height, pagetype.unit())
-    }
-
     pub fn save<T: AsRef<std::path::Path>>(&self, filepath: T) {
         svg::save(filepath, &self.doc).expect("Unable to save SVG");
     }
@@ -108,5 +109,21 @@ impl Page {
         let mut vec = Vec::new();
         svg::write(&mut vec, &self.doc).expect("Unable to write SVG to bytestream");
         vec
+    }
+
+    pub fn width(&self) -> f64 {
+        self.width
+    }
+
+    pub fn height(&self) -> f64 {
+        self.height
+    }
+
+    pub fn dimensions(&self) -> (f64, f64) {
+        (self.width, self.height)
+    }
+
+    pub fn unit(&self) -> Unit {
+        self.unit
     }
 }
