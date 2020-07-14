@@ -291,7 +291,7 @@ impl Poly {
 
         loop {
             //The left most point must be part of the hull
-            hull.push(points[p].clone());
+            hull.push(points[p]);
 
             let mut q = (p + 1) % points.len();
 
@@ -468,8 +468,8 @@ impl Pathable<SvgPath> for ComplexPoly {
         for p in &self.sub_polys {
             let points = p.to_points();
             d = d.move_to(points[0].to_tuple());
-            for i in 1..points.len() {
-                d = d.line_to(points[i].to_tuple());
+            for p in points.iter().skip(1) {
+                d = d.line_to(p.to_tuple());
             }
             d = d.close();
         }
