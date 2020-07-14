@@ -108,7 +108,7 @@ impl Bezier {
             c1,
             c2,
             b,
-            steps: steps,
+            steps,
         }
     }
 
@@ -240,7 +240,7 @@ impl Poly {
         let avg_y = points.iter().map(|p| p.y).sum::<f64>() / points.len() as f64;
 
         Self {
-            points: points,
+            points,
             bound_min: point(min_x, min_y),
             bound_max: point(max_x, max_y),
             centroid: point(avg_x, avg_y),
@@ -404,7 +404,7 @@ impl ComplexPoly {
         }
 
         Self {
-            sub_polys: sub_polys,
+            sub_polys,
             bound_min: point(min_x, min_y),
             bound_max: point(max_x, max_y),
         }
