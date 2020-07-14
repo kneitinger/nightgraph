@@ -175,6 +175,10 @@ impl MultiLine {
     pub fn new(points: Vec<Point>) -> MultiLine {
         Self { points }
     }
+
+    pub fn push_point(&mut self, point: Point) {
+        self.points.push(point);
+    }
 }
 
 impl Pathable<SvgPath> for MultiLine {
@@ -204,18 +208,64 @@ impl Pathable<SvgPath> for MultiLine {
 #[derive(Debug)]
 pub struct Poly {
     points: Vec<Point>,
+    bound_min: Point,
+    bound_max: Point,
+    centroid: Point,
 }
 
 impl Poly {
     pub fn new(points: Vec<Point>) -> Poly {
-        Self { points }
+        let init_point = points.first().unwrap();
+        let mut min_x = init_point.x;
+        let mut min_y = init_point.y;
+        let mut max_x = init_point.x;
+        let mut max_y = init_point.y;
+
+        for p in &points {
+            if p.x < min_x {
+                min_x = p.x;
+            }
+            if p.x > max_x {
+                max_x = p.x;
+            }
+            if p.y < min_y {
+                min_y = p.y;
+            }
+            if p.y > max_y {
+                max_y = p.y;
+            }
+        }
+
+        let avg_x = points.iter().map(|p| p.x).sum::<f64>() / points.len() as f64;
+        let avg_y = points.iter().map(|p| p.y).sum::<f64>() / points.len() as f64;
+
+        Self {
+            points: points,
+            bound_min: point(min_x, min_y),
+            bound_max: point(max_x, max_y),
+            centroid: point(avg_x, avg_y),
+        }
+    }
+
+    pub fn points(&self) -> &Vec<Point> {
+        &self.points
+    }
+
+    pub fn bounding_coords(&self) -> (Point, Point) {
+        (self.bound_min, self.bound_max)
+    }
+
+    pub fn new_scaled_to_centroid(&self, t: f64) -> Poly {
+        let mut lerped_points = vec![];
+        for p in &self.points {
+            lerped_points.push(p.lerp(self.centroid, t));
+        }
+        Poly::new(lerped_points)
     }
 
     pub fn rotated(&self, angle: f64) -> Poly {
         let r = Rotation2D::new(Angle::degrees(angle));
-        Self {
-            points: self.points.iter().map(|p| r.transform_point(*p)).collect(),
-        }
+        Poly::new(self.points.iter().map(|p| r.transform_point(*p)).collect())
     }
 
     pub fn new_from_points(points: Vec<Point>) -> Option<Poly> {
@@ -265,13 +315,13 @@ impl Poly {
     /// Returns `true` if the point is within the path of the polygon.
     ///
     /// [Reference article](https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html)
-    pub fn contains_point(&self, p: Point) -> bool {
+    pub fn contains_point(&self, p: &Point) -> bool {
         let mut crossed = false;
 
         let mut j = self.points.len() - 1;
         for i in 0..self.points.len() {
-            let a = self.points[i];
-            let b = self.points[j];
+            let a = &self.points[i];
+            let b = &self.points[j];
 
             let a_below_p = a.y > p.y;
             let b_below_p = b.y > p.y;
@@ -315,6 +365,114 @@ impl Pathable<SvgPath> for Poly {
         }
         d = d.close();
 
+        SvgPath::new()
+            .set("fill", "none")
+            .set("stroke", "black")
+            .set("stroke-width", "0.5mm")
+            .set("d", d)
+    }
+}
+
+#[derive(Debug)]
+pub struct ComplexPoly {
+    sub_polys: Vec<Poly>,
+    bound_min: Point,
+    bound_max: Point,
+}
+
+impl ComplexPoly {
+    pub fn new(sub_polys: Vec<Poly>) -> ComplexPoly {
+        let init_point = sub_polys.first().unwrap().points.first().unwrap();
+        let mut min_x = init_point.x;
+        let mut min_y = init_point.y;
+        let mut max_x = init_point.x;
+        let mut max_y = init_point.y;
+
+        for p in sub_polys.iter().map(|poly| &poly.points).flatten() {
+            if p.x < min_x {
+                min_x = p.x;
+            }
+            if p.x > max_x {
+                max_x = p.x;
+            }
+            if p.y < min_y {
+                min_y = p.y;
+            }
+            if p.y > max_y {
+                max_y = p.y;
+            }
+        }
+
+        Self {
+            sub_polys: sub_polys,
+            bound_min: point(min_x, min_y),
+            bound_max: point(max_x, max_y),
+        }
+    }
+
+    pub fn bounding_coords(&self) -> (Point, Point) {
+        (self.bound_min, self.bound_max)
+    }
+
+    /// Returns `true` if the point is within the path of the polygon.
+    ///
+    /// [Reference article](https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html)
+    pub fn contains_point(&self, p: Point) -> bool {
+        let mut crossed = false;
+
+        for poly in &self.sub_polys {
+            let points = poly.to_points();
+            let mut j = points.len() - 1;
+            for i in 0..points.len() {
+                let a = points[i];
+                let b = points[j];
+
+                let a_below_p = a.y > p.y;
+                let b_below_p = b.y > p.y;
+                let only_one_below_p = a_below_p != b_below_p;
+
+                let how_much_more_right_b_is_than_a = b.x - a.x;
+                let how_much_below_b_is_than_a = b.y - a.y;
+                let how_much_below_p_is_than_a = p.y - a.y;
+
+                /*
+                 * (a.y > p.y) != (b.y > p.y)
+                 * &&
+                 * (p.x <
+                 *    a.x + (b.x - a.x) * (p.y - a.y) / (b.y - a.y)
+                 * )
+                 */
+
+                if only_one_below_p
+                    && (p.x
+                        < a.x
+                            + how_much_more_right_b_is_than_a * how_much_below_p_is_than_a
+                                / how_much_below_b_is_than_a)
+                {
+                    crossed = !crossed;
+                }
+                j = i
+            }
+        }
+        crossed
+    }
+}
+
+impl Pathable<SvgPath> for ComplexPoly {
+    fn to_points(&self) -> Vec<Point> {
+        vec![]
+    }
+
+    fn to_path(&self) -> SvgPath {
+        let mut d = Data::new();
+        for p in &self.sub_polys {
+            let points = p.to_points();
+            d = d.move_to(points[0].to_tuple());
+            for i in 1..points.len() {
+                d = d.line_to(points[i].to_tuple());
+            }
+            d = d.close();
+        }
         SvgPath::new()
             .set("fill", "none")
             .set("stroke", "black")
