@@ -2,4 +2,5 @@
 
 members = [
     "graphics",
+    "examples/text",
 ]
