@@ -8,6 +8,94 @@ pub struct PageSpace;
 
 pub type Point = Point2D<f64, PageSpace>;
 
+#[derive(Copy, Clone, Debug)]
+pub enum PathCommand {
+    MoveTo(Point),
+    LineTo(Point),
+    QuadTo(Point, Point),
+    CurveTo(Point, Point, Point),
+    Close,
+}
+
+#[derive(Clone, Debug)]
+pub struct Path {
+    commands: Vec<PathCommand>,
+}
+
+impl Path {
+    pub fn new() -> Self {
+        Self { commands: vec![] }
+    }
+
+    pub fn move_to<'a>(&'a mut self, point: Point) -> &'a mut Self {
+        self.commands.push(PathCommand::MoveTo(point));
+        self
+    }
+    pub fn line_to<'a>(&'a mut self, endpoint: Point) -> &'a mut Self {
+        self.commands.push(PathCommand::LineTo(endpoint));
+        self
+    }
+    pub fn quad_to<'a>(&'a mut self, ctrl_point: Point, endpoint: Point) -> &'a mut Self {
+        self.commands
+            .push(PathCommand::QuadTo(ctrl_point, endpoint));
+        self
+    }
+    pub fn curve_to<'a>(
+        &'a mut self,
+        ctrl_point_0: Point,
+        ctrl_point_1: Point,
+        endpoint: Point,
+    ) -> &'a mut Self {
+        self.commands
+            .push(PathCommand::CurveTo(ctrl_point_0, ctrl_point_1, endpoint));
+        self
+    }
+
+    pub fn curve_through<'a>(&'a mut self, _endpoint: Point) -> &'a mut Self {
+        // https://www.particleincell.com/2012/bezier-splines/
+        unimplemented!();
+    }
+
+    pub fn close<'a>(&'a mut self) -> &'a mut Self {
+        self.commands.push(PathCommand::Close);
+        self
+    }
+
+    //pub fn segmentize
+}
+
+impl Pathable<SvgPath> for Path {
+    fn to_points(&self) -> Vec<Point> {
+        vec![]
+    }
+
+    fn to_path(&self) -> SvgPath {
+        let mut d = Data::new();
+        for cmd in &self.commands {
+            d = match cmd {
+                PathCommand::MoveTo(p) => d.move_to(p.to_tuple()),
+                PathCommand::LineTo(p) => d.line_to(p.to_tuple()),
+                PathCommand::QuadTo(c, p) => d.quadratic_curve_to((c.to_tuple(), p.to_tuple())),
+                PathCommand::CurveTo(c1, c2, p) => {
+                    d.cubic_curve_to((c1.to_tuple(), c2.to_tuple(), p.to_tuple()))
+                }
+                PathCommand::Close => d.close(),
+            }
+        }
+
+        SvgPath::new()
+            .set("fill", "none")
+            .set("stroke", "black")
+            .set("stroke-width", "0.5mm")
+            .set("fill-rule", "evenodd")
+            .set("d", d)
+    }
+
+    fn hatch(&self, _spacing: f64, _inset: f64, _angle: f64) -> Vec<Line> {
+        vec![]
+    }
+}
+
 /// Convenience function to allow making `Point`s quickly
 /// from any compatible number type
 pub fn point<T: ToPrimitive, U: ToPrimitive>(x: T, y: U) -> Point {
