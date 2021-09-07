@@ -1,13 +1,5 @@
-[package]
-name = "knart"
-version = "0.1.0"
-authors = ["Kyle Kneitinger <kyle@kneit.in>"]
-edition = "2018"
-description = "Utilities for creating art"
+[workspace]
 
-[dependencies]
-svg = "^0.8"
-euclid = "^0.20"
-itertools = "^0.9"
-num-traits = "^0.2"
-nalgebra = "^0.21"
+members = [
+    "graphics",
+]
