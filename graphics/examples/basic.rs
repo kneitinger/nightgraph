@@ -1,6 +1,4 @@
-use knart::geometry::*;
-use knart::page::*;
-use knart::Unit;
+use nightgraph_graphics::prelude::*;
 
 fn main() {
     let mut page = Page::new(10., 10., Unit::Mm);
@@ -13,6 +11,6 @@ fn main() {
         group.add(&l);
     }
 
-    page.add_group(group);
+    page.add_group(&group);
     page.save("image.svg".to_string());
 }

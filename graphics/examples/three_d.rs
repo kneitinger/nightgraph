@@ -1,6 +1,4 @@
-use knart::geometry::*;
-use knart::geometry_3d::*;
-use knart::page::*;
+use nightgraph_graphics::prelude::*;
 
 fn main() {
     let mut page = Page::new_from_pagetype(PageType::Pad11x14);
