@@ -1,4 +1,4 @@
-use crate::{MultiLine, Point};
+use crate::geometry::{MultiLine, Point};
 use nalgebra::Point3 as nPoint3;
 use nalgebra::{Matrix4, Vector3};
 use num_traits::ToPrimitive;

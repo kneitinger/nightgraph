@@ -7,12 +7,3 @@ pub mod page;
 pub mod prelude;
 pub mod text;
 pub mod units;
-pub use geometry::{MultiLine, Point};
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
