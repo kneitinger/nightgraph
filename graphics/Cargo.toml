@@ -1,5 +1,5 @@
 [package]
-name = "nightgraph_graphics"
+name = "nightgraphics"
 version = "0.1.0"
 authors = ["Kyle Kneitinger <kyle@kneit.in>"]
 edition = "2018"

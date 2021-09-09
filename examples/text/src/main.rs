@@ -1,4 +1,4 @@
-use nightgraph_graphics::prelude::*;
+use nightgraphics::prelude::*;
 
 fn main() {
     let mut page = Page::new(8., 4., Unit::In);
