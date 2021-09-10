@@ -1,4 +1,4 @@
-use crate::geometry::{point, Path, Point};
+use crate::geometry::{point, Path, Pathable, Point};
 use rusttype::{Font, OutlineBuilder, Scale};
 
 pub struct Text<'a> {
@@ -10,7 +10,7 @@ pub struct Text<'a> {
 
 impl Default for Text<'_> {
     fn default() -> Self {
-        let font_data = include_bytes!("../assets/Jost-500-Medium.otf");
+        let font_data = include_bytes!("../../assets/Jost-500-Medium.otf");
         Self {
             font: Font::try_from_bytes(font_data as &[u8])
                 .expect("error constructing a Font from bytes"),
@@ -33,27 +33,29 @@ impl Text<'_> {
         });
         self
     }
-    pub fn set_size<'a>(&'a mut self, size: f32) -> &'a mut Self {
+    pub fn set_size(&mut self, size: f32) -> &mut Self {
         self.size = size;
         self
     }
-    pub fn set_text<'a>(&'a mut self, text: &str) -> &'a mut Self {
+    pub fn set_text(&mut self, text: &str) -> &mut Self {
         self.text = text.to_string();
         self
     }
-    pub fn set_origin<'a>(&'a mut self, origin: Point) -> &'a mut Self {
+    pub fn set_origin(&mut self, origin: Point) -> &mut Self {
         self.origin = origin;
         self
     }
+}
 
-    pub fn paths(&self) -> Vec<Path> {
+impl Pathable for Text<'_> {
+    fn to_path(&self) -> Path {
         let scale = Scale {
             x: self.size,
             y: self.size,
         };
         let offset = rusttype::point(self.origin.x as f32, self.origin.y as f32);
 
-        let mut paths = vec![];
+        let mut path = Path::new();
 
         let glyphs = self.font.layout(&self.text, scale, offset);
         for g in glyphs {
@@ -62,10 +64,9 @@ impl Text<'_> {
             let mut path_outliner = PathOutlineBuilder::new(point(pos.x, pos.y));
             let unpositioned_glyph = g.unpositioned();
             unpositioned_glyph.build_outline(&mut path_outliner);
-
-            paths.push(path_outliner.path());
+            path.append(path_outliner.path());
         }
-        paths
+        path
     }
 }
 

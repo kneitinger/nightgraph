@@ -1,4 +1,5 @@
-use crate::geometry::{PageSpace, Pathable};
+use crate::geometry::PageSpace;
+use crate::render::svg::SvgRenderable;
 use crate::units::*;
 use euclid::Size2D;
 use svg::{
@@ -55,8 +56,12 @@ impl Group {
         Group { raw_group }
     }
 
-    pub fn add<U: Node, T: Pathable<U>>(&mut self, p: &T) {
-        self.raw_group.append(p.to_path());
+    pub fn add<U: Node, T: SvgRenderable<U>>(&mut self, p: &T) {
+        self.raw_group.append(p.to_svg());
+    }
+
+    pub fn add_group(&mut self, group: &Group) {
+        self.raw_group.append(group.get_raw());
     }
 
     fn get_raw(&self) -> PrimitiveGroup {
@@ -88,8 +93,8 @@ impl Page {
         Page::new(dimensions.width, dimensions.height, pagetype.unit())
     }
 
-    pub fn add<U: Node, T: Pathable<U>>(&mut self, p: &T) {
-        self.doc.append(p.to_path());
+    pub fn add<U: Node, T: SvgRenderable<U>>(&mut self, p: &T) {
+        self.doc.append(p.to_svg());
     }
 
     pub fn add_comment<T: Into<String>>(&mut self, content: T) {

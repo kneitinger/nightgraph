@@ -5,5 +5,5 @@ pub mod geometry;
 pub mod geometry_3d;
 pub mod page;
 pub mod prelude;
-pub mod text;
+pub mod render;
 pub mod units;
