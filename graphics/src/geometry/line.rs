@@ -1,4 +1,4 @@
-use super::{Path, Pathable, Point};
+use super::{Path, PathCommand, Pathable, Point};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Line {
@@ -18,10 +18,7 @@ impl Line {
 
 impl Pathable for Line {
     fn to_path(&self) -> Path {
-        let mut path = Path::new();
-        path.move_to(self.a);
-        path.line_to(self.b);
-        path
+        Path::new(self.a, PathCommand::LineTo(self.b))
     }
 }
 
@@ -42,9 +39,8 @@ impl MultiLine {
 
 impl Pathable for MultiLine {
     fn to_path(&self) -> Path {
-        let mut path = Path::new();
-        path.move_to(self.points[0]);
-        for &p in self.points.iter().skip(1) {
+        let mut path = Path::new(self.points[0], PathCommand::LineTo(self.points[1]));
+        for &p in self.points.iter().skip(2) {
             path.line_to(p);
         }
         path

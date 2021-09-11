@@ -1,4 +1,4 @@
-use crate::geometry::{point, Path, Pathable, Point};
+use crate::geometry::{point, Path, PathCommand, Pathable, Point};
 use rusttype::{Font, OutlineBuilder, Scale};
 
 pub struct Text<'a> {
@@ -55,7 +55,7 @@ impl Pathable for Text<'_> {
         };
         let offset = rusttype::point(self.origin.x as f32, self.origin.y as f32);
 
-        let mut path = Path::new();
+        let mut cmds = vec![];
 
         let glyphs = self.font.layout(&self.text, scale, offset);
         for g in glyphs {
@@ -64,27 +64,30 @@ impl Pathable for Text<'_> {
             let mut path_outliner = PathOutlineBuilder::new(point(pos.x, pos.y));
             let unpositioned_glyph = g.unpositioned();
             unpositioned_glyph.build_outline(&mut path_outliner);
-            path.append(path_outliner.path());
+            let path = path_outliner.path();
+            for cmd in path.commands() {
+                cmds.push(*cmd);
+            }
         }
-        path
+        Path::with_commands(&cmds)
     }
 }
 
 struct PathOutlineBuilder {
-    path: Path,
+    cmds: Vec<PathCommand>,
     translation: Point,
 }
 
 impl PathOutlineBuilder {
     fn new(translation: Point) -> Self {
         Self {
-            path: Path::new(),
+            cmds: vec![],
             translation,
         }
     }
 
     fn path(&self) -> Path {
-        self.path.clone()
+        Path::with_commands(&self.cmds)
     }
 
     fn point(&self, x: f32, y: f32) -> Point {
@@ -94,19 +97,23 @@ impl PathOutlineBuilder {
 
 impl OutlineBuilder for PathOutlineBuilder {
     fn move_to(&mut self, x: f32, y: f32) {
-        self.path.move_to(self.point(x, y));
+        self.cmds.push(PathCommand::MoveTo(self.point(x, y)));
     }
     fn line_to(&mut self, x: f32, y: f32) {
-        self.path.line_to(self.point(x, y));
+        self.cmds.push(PathCommand::LineTo(self.point(x, y)));
     }
     fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
-        self.path.quad_to(self.point(x1, y1), self.point(x, y));
+        self.cmds
+            .push(PathCommand::QuadTo(self.point(x1, y1), self.point(x, y)));
     }
     fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
-        self.path
-            .curve_to(self.point(x1, y1), self.point(x2, y2), self.point(x, y));
+        self.cmds.push(PathCommand::CurveTo(
+            self.point(x1, y1),
+            self.point(x2, y2),
+            self.point(x, y),
+        ));
     }
     fn close(&mut self) {
-        self.path.close();
+        self.cmds.push(PathCommand::Close);
     }
 }

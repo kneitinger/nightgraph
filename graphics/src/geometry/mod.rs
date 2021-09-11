@@ -35,13 +35,17 @@ pub struct Path {
 }
 
 impl Path {
-    pub fn new() -> Self {
-        Self { commands: vec![] }
+    pub fn new(origin: Point, cmd: PathCommand) -> Self {
+        Self {
+            commands: vec![PathCommand::MoveTo(origin), cmd],
+        }
     }
 
     // TODO: there needs to be an error if the path doesn't start with a move_to
-    pub fn with_commands(commands: Vec<PathCommand>) -> Self {
-        Self { commands }
+    pub fn with_commands(commands: &[PathCommand]) -> Self {
+        Self {
+            commands: commands.to_owned(),
+        }
     }
 
     pub fn commands(&self) -> &[PathCommand] {
@@ -72,10 +76,14 @@ impl Path {
         self.commands.push(PathCommand::Close);
     }
 
-    pub fn append(&mut self, other: Self) {
-        for cmd in other.commands {
-            self.commands.push(cmd);
+    pub fn append(&mut self, other: &Self) {
+        for cmd in &other.commands {
+            self.commands.push(*cmd);
         }
+    }
+
+    pub fn closed(&self) -> bool {
+        matches!(self.commands.last(), Some(PathCommand::Close))
     }
 }
 

@@ -1,4 +1,4 @@
-use super::{Path, Pathable, Point};
+use super::{Path, PathCommand, Pathable, Point};
 #[derive(Debug)]
 pub struct Poly {
     points: Vec<Point>,
@@ -119,9 +119,8 @@ impl Poly {
 
 impl Pathable for Poly {
     fn to_path(&self) -> Path {
-        let mut path = Path::new();
-        path.move_to(self.points[0]);
-        for &p in self.points.iter().skip(1) {
+        let mut path = Path::new(self.points[0], PathCommand::LineTo(self.points[1]));
+        for &p in self.points.iter().skip(2) {
             path.line_to(p);
         }
         path.close();
@@ -191,15 +190,16 @@ impl ComplexPoly {
 
 impl Pathable for ComplexPoly {
     fn to_path(&self) -> Path {
-        let mut path = Path::new();
+        let mut cmds = vec![];
         for p in &self.sub_polys {
             let points = p.points();
-            path.move_to(points[0]);
-            for &p in points.iter().skip(1) {
-                path.line_to(p);
+            cmds.push(PathCommand::MoveTo(points[0]));
+            cmds.push(PathCommand::LineTo(points[1]));
+            for &p in points.iter().skip(2) {
+                cmds.push(PathCommand::LineTo(p));
             }
-            path.close();
+            cmds.push(PathCommand::Close);
         }
-        path
+        Path::with_commands(&cmds)
     }
 }
