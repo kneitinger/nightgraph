@@ -10,3 +10,4 @@ edition = "2018"
 # packaging (or alternatively, when building the release profile.
 bevy = { version = "0.5.0", features = ["dynamic"] }
 bevy_egui = "0.7.0"
+nightgraphics = { path = "../graphics" }

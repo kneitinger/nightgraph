@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContext, EguiSettings};
+use nightgraphics::geometry::{point, Circle, Text};
+use nightgraphics::render::egui::EguiRenderable;
 
 #[derive(Default)]
 pub struct UiState {
@@ -27,56 +29,28 @@ pub fn update_ui_scale_factor(
 }
 
 struct Canvas {
-    lines: Vec<Vec<egui::Vec2>>,
-    stroke: egui::Stroke,
+    shapes: Vec<egui::Shape>,
 }
 
 impl Default for Canvas {
     fn default() -> Self {
+        let circ = Circle::new(point(200, 200), 80.);
+        let mut text = Text::default();
+        text.set_size(100.);
+        text.set_origin(point(200, 300));
         Self {
-            lines: Default::default(),
-            stroke: egui::Stroke::new(1.0, egui::Color32::LIGHT_BLUE),
+            shapes: vec![circ.to_shape(), text.to_shape()],
         }
     }
 }
 
 impl Canvas {
-    pub fn ui_control(&mut self, ui: &mut egui::Ui) -> egui::Response {
-        ui.horizontal(|ui| {
-            egui::stroke_ui(ui, &mut self.stroke, "Stroke");
-            ui.separator();
-            if ui.button("Clear Canvas").clicked() {
-                self.lines.clear();
-            }
-        })
-        .response
-    }
-
     pub fn ui_content(&mut self, ui: &mut egui::Ui) {
-        let (response, painter) =
-            ui.allocate_painter(ui.available_size_before_wrap_finite(), egui::Sense::drag());
-        let rect = response.rect;
+        let (_response, painter) =
+            ui.allocate_painter(ui.available_size_before_wrap_finite(), egui::Sense::hover());
 
-        if self.lines.is_empty() {
-            self.lines.push(vec![]);
-        }
-
-        let current_line = self.lines.last_mut().unwrap();
-
-        if let Some(pointer_pos) = response.interact_pointer_pos() {
-            let canvas_pos = pointer_pos - rect.min;
-            if current_line.last() != Some(&canvas_pos) {
-                current_line.push(canvas_pos);
-            }
-        } else if !current_line.is_empty() {
-            self.lines.push(vec![]);
-        }
-
-        for line in &self.lines {
-            if line.len() >= 2 {
-                let points: Vec<egui::Pos2> = line.iter().map(|p| rect.min + *p).collect();
-                painter.add(egui::Shape::line(points, self.stroke));
-            }
+        for shape in &self.shapes {
+            painter.add(shape.clone());
         }
     }
 }
@@ -100,10 +74,6 @@ pub fn ui_nightgraph(egui_ctx: ResMut<EguiContext>, mut ui_state: ResMut<UiState
         });
 
     egui::CentralPanel::default().show(egui_ctx.ctx(), |ui| {
-        ui.heading("Drawing");
-
-        ui.heading("Draw with your mouse to paint:");
-        ui_state.canvas.ui_control(ui);
         egui::Frame::dark_canvas(ui.style()).show(ui, |ui| {
             ui_state.canvas.ui_content(ui);
         });
