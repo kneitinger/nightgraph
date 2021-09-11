@@ -57,7 +57,8 @@ impl Group {
     }
 
     pub fn add<U: Node, T: SvgRenderable<U>>(&mut self, p: &T) {
-        self.raw_group.append(p.to_svg());
+        // TODO: do not unwrap error once page module error handling exists
+        self.raw_group.append(p.to_svg().unwrap());
     }
 
     pub fn add_group(&mut self, group: &Group) {
@@ -94,7 +95,8 @@ impl Page {
     }
 
     pub fn add<U: Node, T: SvgRenderable<U>>(&mut self, p: &T) {
-        self.doc.append(p.to_svg());
+        // TODO: do not unwrap error once page module error handling exists
+        self.doc.append(p.to_svg().unwrap());
     }
 
     pub fn add_comment<T: Into<String>>(&mut self, content: T) {

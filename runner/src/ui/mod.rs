@@ -34,12 +34,16 @@ struct Canvas {
 
 impl Default for Canvas {
     fn default() -> Self {
-        let circ = Circle::new(point(200, 200), 80.);
+        let circ_shapes = Circle::new(point(200, 200), 80.)
+            .to_shapes()
+            .unwrap()
+            .into_iter();
         let mut text = Text::default();
         text.set_size(100.);
         text.set_origin(point(200, 300));
+        let text_shapes = text.to_shapes().unwrap().into_iter();
         Self {
-            shapes: vec![circ.to_shape(), text.to_shape()],
+            shapes: circ_shapes.chain(text_shapes).collect(),
         }
     }
 }

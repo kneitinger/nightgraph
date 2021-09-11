@@ -9,7 +9,8 @@ fn main() {
             2.5 * Unit::In.scale() as f32,
             2.5 * Unit::In.scale() as f32,
         ))
-        .to_path();
+        .to_path()
+        .unwrap();
 
     page.add(&text_path);
     page.save("image.svg".to_string());

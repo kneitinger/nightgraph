@@ -1,4 +1,4 @@
-use crate::geometry::{point, Path, PathCommand, Pathable, Point};
+use crate::geometry::{point, GeomResult, Path, PathCommand, Pathable, Point};
 use rusttype::{Font, OutlineBuilder, Scale};
 
 pub struct Text<'a> {
@@ -48,7 +48,7 @@ impl Text<'_> {
 }
 
 impl Pathable for Text<'_> {
-    fn to_path(&self) -> Path {
+    fn to_path(&self) -> GeomResult<Path> {
         let scale = Scale {
             x: self.size,
             y: self.size,
@@ -64,9 +64,17 @@ impl Pathable for Text<'_> {
             let mut path_outliner = PathOutlineBuilder::new(point(pos.x, pos.y));
             let unpositioned_glyph = g.unpositioned();
             unpositioned_glyph.build_outline(&mut path_outliner);
-            let path = path_outliner.path();
-            for cmd in path.commands() {
-                cmds.push(*cmd);
+
+            // Whitespace produces a list of empty commands in path_outliner,
+            // which when passed to Path::with_commands(cmds) produces an
+            // error. In this case, we'll skip any erroneous paths, assuming
+            // that whitespace is the only thing that triggers this, however
+            // as this is used, if anything else is getting dropped, this
+            // approach can be revisited
+            if let Ok(path) = path_outliner.path() {
+                for cmd in path.commands() {
+                    cmds.push(*cmd);
+                }
             }
         }
         Path::with_commands(&cmds)
@@ -86,7 +94,7 @@ impl PathOutlineBuilder {
         }
     }
 
-    fn path(&self) -> Path {
+    fn path(&self) -> GeomResult<Path> {
         Path::with_commands(&self.cmds)
     }
 

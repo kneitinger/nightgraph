@@ -1,4 +1,4 @@
-use super::{Path, PathCommand, Pathable, Point};
+use super::{GeomError, GeomResult, Path, PathCommand, Pathable, Point};
 #[derive(Debug)]
 pub struct Poly {
     points: Vec<Point>,
@@ -118,13 +118,18 @@ impl Poly {
 }
 
 impl Pathable for Poly {
-    fn to_path(&self) -> Path {
-        let mut path = Path::new(self.points[0], PathCommand::LineTo(self.points[1]));
-        for &p in self.points.iter().skip(2) {
-            path.line_to(p);
+    fn to_path(&self) -> GeomResult<Path> {
+        match self.points.as_slice() {
+            [first, second, rest @ ..] => {
+                let mut path = Path::new(*first, PathCommand::LineTo(*second));
+                for &p in rest {
+                    path.line_to(p);
+                }
+                path.close();
+                Ok(path)
+            }
+            _ => Err(GeomError::malformed_path("Poly has less than three points")),
         }
-        path.close();
-        path
     }
 }
 
@@ -189,17 +194,18 @@ impl ComplexPoly {
 }
 
 impl Pathable for ComplexPoly {
-    fn to_path(&self) -> Path {
-        let mut cmds = vec![];
-        for p in &self.sub_polys {
-            let points = p.points();
-            cmds.push(PathCommand::MoveTo(points[0]));
-            cmds.push(PathCommand::LineTo(points[1]));
-            for &p in points.iter().skip(2) {
-                cmds.push(PathCommand::LineTo(p));
-            }
-            cmds.push(PathCommand::Close);
-        }
-        Path::with_commands(&cmds)
+    fn to_path(&self) -> GeomResult<Path> {
+        self.sub_polys
+            .iter()
+            .map(|poly| poly.to_path())
+            .collect::<GeomResult<Vec<Path>>>()
+            .and_then(|v| {
+                v.into_iter()
+                    .reduce(|mut a, b| {
+                        a.append(&b);
+                        a
+                    })
+                    .ok_or_else(|| GeomError::malformed_poly("complex poly had no sub polys"))
+            })
     }
 }

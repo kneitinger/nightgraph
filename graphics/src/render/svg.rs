@@ -1,28 +1,32 @@
+use super::RenderResult;
 use crate::geometry;
 use crate::geometry::PathCommand;
 use svg::node::element::{path::Data, Circle as SvgCircle, Path as SvgPath};
 use svg::node::Node;
 
 pub trait SvgRenderable<T: Node> {
-    fn to_svg(&self) -> T;
+    fn to_svg(&self) -> RenderResult<T>;
 }
 
 impl SvgRenderable<SvgCircle> for geometry::Circle {
-    fn to_svg(&self) -> SvgCircle {
-        SvgCircle::new()
+    fn to_svg(&self) -> RenderResult<SvgCircle> {
+        Ok(SvgCircle::new()
             .set("fill", "none")
+            // TODO: allow stroke to be set at or before render time
             .set("stroke", "black")
             .set("stroke-width", "0.5mm")
             .set("cx", self.center().x)
             .set("cy", self.center().y)
-            .set("r", self.radius())
+            .set("r", self.radius()))
     }
 }
 
 impl<T: geometry::Pathable> SvgRenderable<SvgPath> for T {
-    fn to_svg(&self) -> SvgPath {
+    fn to_svg(&self) -> RenderResult<SvgPath> {
         let mut d = Data::new();
-        for cmd in self.to_path().commands() {
+        let path = self.to_path()?;
+
+        for cmd in path.commands() {
             d = match cmd {
                 PathCommand::MoveTo(p) => d.move_to(p.to_tuple()),
                 PathCommand::LineTo(p) => d.line_to(p.to_tuple()),
@@ -34,11 +38,12 @@ impl<T: geometry::Pathable> SvgRenderable<SvgPath> for T {
             }
         }
 
-        SvgPath::new()
+        Ok(SvgPath::new()
             .set("fill", "none")
+            // TODO: allow stroke to be set at or before render time
             .set("stroke", "black")
             .set("stroke-width", "0.5mm")
             .set("fill-rule", "evenodd")
-            .set("d", d)
+            .set("d", d))
     }
 }
