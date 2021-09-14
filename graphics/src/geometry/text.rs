@@ -11,6 +11,7 @@ pub struct TextBuilder<'a> {
     origin: Option<Point>,
 }
 
+#[allow(clippy::new_without_default)]
 impl<'a> TextBuilder<'a> {
     pub fn new() -> Self {
         Self {
@@ -55,20 +56,20 @@ impl<'a> TextBuilder<'a> {
         };
         let font_data = if let Some(path) = self.font {
             let buf = &mut [];
-            File::open(path)?.read(buf)?;
+            File::open(path)?.read_exact(buf)?;
             buf.to_vec()
         } else {
             include_bytes!("../../assets/Jost-500-Medium.otf").to_vec()
         };
 
-        let font = Font::try_from_vec(font_data).ok_or(GeomError::font_error(""))?;
+        let font = Font::try_from_vec(font_data).ok_or_else(|| GeomError::font_error(""))?;
 
         let scale = Scale { x: size, y: size };
         let offset = rusttype::point(origin.x as f32, origin.y as f32);
 
         let mut cmds = vec![];
 
-        let glyphs = font.layout(&text, scale, offset);
+        let glyphs = font.layout(text, scale, offset);
         for g in glyphs {
             let pos = g.position();
 

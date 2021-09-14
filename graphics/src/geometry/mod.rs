@@ -39,6 +39,7 @@ impl GeomError {
     fn path_error(msg: &str) -> Self {
         Self::PathError(msg.to_string())
     }
+    #[allow(dead_code)]
     fn malformed_poly(msg: &str) -> Self {
         Self::MalformedPoly(msg.to_string())
     }
@@ -104,7 +105,7 @@ impl Path {
     }
 
     pub fn commands(&self) -> &[PathEl] {
-        &self.inner.elements()
+        self.inner.elements()
     }
 
     pub fn move_to(&mut self, point: Point) {
