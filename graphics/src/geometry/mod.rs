@@ -13,8 +13,6 @@ pub use poly::{ComplexPoly, Poly};
 mod text;
 pub use text::TextBuilder;
 
-pub struct PageSpace;
-
 /// Convenience function to allow making `Point`s quickly
 /// from any compatible number type
 pub fn point<T: ToPrimitive, U: ToPrimitive>(x: T, y: U) -> Point {

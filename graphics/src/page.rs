@@ -1,7 +1,6 @@
-use crate::geometry::PageSpace;
 use crate::render::svg::SvgRenderable;
 use crate::units::*;
-use euclid::Size2D;
+use kurbo::Vec2;
 use svg::{
     node::{
         element::{Group as PrimitiveGroup, Text},
@@ -20,14 +19,14 @@ pub enum PageType {
 }
 
 impl PageType {
-    pub fn dimensions(&self) -> Size2D<f64, PageSpace> {
+    pub fn dimensions(&self) -> Vec2 {
         match self {
-            Self::BlackPad => Size2D::new(20.7, 29.35),  // cm
-            Self::A6 => Size2D::new(105., 148.),         // mm
-            Self::A4 => Size2D::new(210., 297.),         // mm
-            Self::Pad11x14 => Size2D::new(11., 14.),     // in
-            Self::Envelope10 => Size2D::new(9.5, 4.125), // in
-            Self::Other(w, h, _) => Size2D::new(*w, *h), // other
+            Self::BlackPad => Vec2::new(20.7, 29.35),  // cm
+            Self::A6 => Vec2::new(105., 148.),         // mm
+            Self::A4 => Vec2::new(210., 297.),         // mm
+            Self::Pad11x14 => Vec2::new(11., 14.),     // in
+            Self::Envelope10 => Vec2::new(9.5, 4.125), // in
+            Self::Other(w, h, _) => Vec2::new(*w, *h), // other
         }
     }
 
@@ -91,7 +90,7 @@ impl Page {
 
     pub fn new_from_pagetype(pagetype: PageType) -> Page {
         let dimensions = pagetype.dimensions();
-        Page::new(dimensions.width, dimensions.height, pagetype.unit())
+        Page::new(dimensions.x, dimensions.y, pagetype.unit())
     }
 
     pub fn add<U: Node, T: SvgRenderable<U>>(&mut self, p: &T) {
