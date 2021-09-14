@@ -3,6 +3,4 @@
 members = [
     "graphics",
     "runner",
-
-    "examples/text",
 ]
