@@ -1,6 +1,5 @@
 use kurbo::Shape;
 pub use kurbo::{flatten, BezPath, PathEl, Point, DEFAULT_ACCURACY};
-use num_traits::ToPrimitive;
 use std::error::Error;
 use std::fmt;
 
@@ -15,8 +14,8 @@ pub use text::TextBuilder;
 
 /// Convenience function to allow making `Point`s quickly
 /// from any compatible number type
-pub fn point<T: ToPrimitive, U: ToPrimitive>(x: T, y: U) -> Point {
-    Point::new(x.to_f64().unwrap(), y.to_f64().unwrap())
+pub fn point<T: Into<f64>, U: Into<f64>>(x: T, y: U) -> Point {
+    Point::new(x.into(), y.into())
 }
 
 pub type GeomResult<T> = Result<T, GeomError>;

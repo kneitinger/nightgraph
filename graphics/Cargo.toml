@@ -8,7 +8,6 @@ description = "Utilities for creating art"
 [dependencies]
 svg = "^0.10"
 itertools = "^0.10"
-num-traits = "^0.2"
 nalgebra = "^0.29"
 rusttype = "^0.9"
 egui = "^0.14"
