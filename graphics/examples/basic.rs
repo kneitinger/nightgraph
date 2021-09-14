@@ -9,18 +9,21 @@ fn main() {
         point(50, 10),
         point(90, 90),
         point(10, 90),
-    ]);
+    ])
+    .unwrap();
     page.add(&poly);
 
     let circ = Circle::new(point(50, 50), 20.);
     page.add(&circ);
 
-    let line = Line::new(point(10, 100), point(150, 80));
+    let line = Line::new(point(10, 100), point(150, 80)).unwrap();
     group.add(&line);
 
-    let mut text = Text::new();
-    text.set_size(200.);
-    text.set_origin(point(10, 300));
+    let text = TextBuilder::new()
+        .size(200.)
+        .origin(point(10, 300))
+        .build()
+        .unwrap();
     group.add(&text);
 
     page.add_group(&group);

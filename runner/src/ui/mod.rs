@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContext, EguiSettings};
-use nightgraphics::geometry::{point, Circle, Text};
+use nightgraphics::geometry::{point, Circle, TextBuilder};
 use nightgraphics::render::egui::EguiRenderable;
 
 #[derive(Default)]
@@ -34,13 +34,15 @@ struct Canvas {
 
 impl Default for Canvas {
     fn default() -> Self {
-        let circ_shapes = Circle::new(point(200, 200), 80.)
+        let circ_shapes = Circle::new(point(100, 100), 90.)
             .to_shapes()
             .unwrap()
             .into_iter();
-        let mut text = Text::default();
-        text.set_size(100.);
-        text.set_origin(point(200, 300));
+        let text = TextBuilder::new()
+            .size(100.)
+            .origin(point(10, 300))
+            .build()
+            .unwrap();
         let text_shapes = text.to_shapes().unwrap().into_iter();
         Self {
             shapes: circ_shapes.chain(text_shapes).collect(),
@@ -50,11 +52,14 @@ impl Default for Canvas {
 
 impl Canvas {
     pub fn ui_content(&mut self, ui: &mut egui::Ui) {
-        let (_response, painter) =
+        let (response, painter) =
             ui.allocate_painter(ui.available_size_before_wrap_finite(), egui::Sense::hover());
+        let rect = response.rect;
 
         for shape in &self.shapes {
-            painter.add(shape.clone());
+            let mut s = shape.clone();
+            s.translate(egui::Vec2::new(rect.min.x, rect.min.y));
+            painter.add(s);
         }
     }
 }

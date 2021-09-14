@@ -1,63 +1,74 @@
-use crate::geometry::{point, GeomResult, Path, PathCommand, Pathable, Point};
+use crate::geometry::{point, GeomError, GeomResult, Path, Point};
+use kurbo::PathEl;
 use rusttype::{Font, OutlineBuilder, Scale};
+use std::fs::File;
+use std::io::Read;
 
-pub struct Text<'a> {
-    font: Font<'a>,
-    size: f32,
-    text: String,
-    origin: Point,
+pub struct TextBuilder<'a> {
+    font: Option<&'a str>,
+    size: Option<f64>,
+    text: Option<&'a str>,
+    origin: Option<Point>,
 }
 
-impl Default for Text<'_> {
-    fn default() -> Self {
-        let font_data = include_bytes!("../../assets/Jost-500-Medium.otf");
+impl<'a> TextBuilder<'a> {
+    pub fn new() -> Self {
         Self {
-            font: Font::try_from_bytes(font_data as &[u8])
-                .expect("error constructing a Font from bytes"),
-            size: 24.0,
-            text: "Lorem Ipsum".to_string(),
-            origin: point(0, 0),
+            font: None,
+            size: None,
+            text: None,
+            origin: None,
         }
     }
-}
 
-impl Text<'_> {
-    pub fn new() -> Self {
-        Self::default()
+    pub fn font(mut self, font_path: &'a str) -> Self {
+        self.font = Some(font_path);
+        self
     }
 
-    pub fn set_font<'a>(&'a mut self, font_path: &str) -> &'a mut Self {
-        let data = std::fs::read(&font_path).unwrap();
-        self.font = Font::try_from_vec(data).unwrap_or_else(|| {
-            panic!("error constructing a Font from data at {:?}", font_path);
-        });
+    pub fn size<T: Into<f64>>(mut self, size: T) -> Self {
+        self.size = Some(size.into());
         self
     }
-    pub fn set_size(&mut self, size: f32) -> &mut Self {
-        self.size = size;
-        self
-    }
-    pub fn set_text(&mut self, text: &str) -> &mut Self {
-        self.text = text.to_string();
-        self
-    }
-    pub fn set_origin(&mut self, origin: Point) -> &mut Self {
-        self.origin = origin;
-        self
-    }
-}
 
-impl Pathable for Text<'_> {
-    fn to_path(&self) -> GeomResult<Path> {
-        let scale = Scale {
-            x: self.size,
-            y: self.size,
+    pub fn text(mut self, text: &'a str) -> Self {
+        self.text = Some(text);
+        self
+    }
+
+    pub fn origin(mut self, origin: Point) -> Self {
+        self.origin = Some(origin);
+        self
+    }
+
+    pub fn build(self) -> GeomResult<Path> {
+        let origin = if let Some(p) = self.origin {
+            p
+        } else {
+            Point::new(0., 0.)
         };
-        let offset = rusttype::point(self.origin.x as f32, self.origin.y as f32);
+        let size = if let Some(s) = self.size { s } else { 100. } as f32;
+        let text = if let Some(t) = self.text {
+            t
+        } else {
+            "Lorem Ipsum"
+        };
+        let font_data = if let Some(path) = self.font {
+            let buf = &mut [];
+            File::open(path)?.read(buf)?;
+            buf.to_vec()
+        } else {
+            include_bytes!("../../assets/Jost-500-Medium.otf").to_vec()
+        };
+
+        let font = Font::try_from_vec(font_data).ok_or(GeomError::font_error(""))?;
+
+        let scale = Scale { x: size, y: size };
+        let offset = rusttype::point(origin.x as f32, origin.y as f32);
 
         let mut cmds = vec![];
 
-        let glyphs = self.font.layout(&self.text, scale, offset);
+        let glyphs = font.layout(&text, scale, offset);
         for g in glyphs {
             let pos = g.position();
 
@@ -82,7 +93,7 @@ impl Pathable for Text<'_> {
 }
 
 struct PathOutlineBuilder {
-    cmds: Vec<PathCommand>,
+    cmds: Vec<PathEl>,
     translation: Point,
 }
 
@@ -105,23 +116,23 @@ impl PathOutlineBuilder {
 
 impl OutlineBuilder for PathOutlineBuilder {
     fn move_to(&mut self, x: f32, y: f32) {
-        self.cmds.push(PathCommand::MoveTo(self.point(x, y)));
+        self.cmds.push(PathEl::MoveTo(self.point(x, y)));
     }
     fn line_to(&mut self, x: f32, y: f32) {
-        self.cmds.push(PathCommand::LineTo(self.point(x, y)));
+        self.cmds.push(PathEl::LineTo(self.point(x, y)));
     }
     fn quad_to(&mut self, x1: f32, y1: f32, x: f32, y: f32) {
         self.cmds
-            .push(PathCommand::QuadTo(self.point(x1, y1), self.point(x, y)));
+            .push(PathEl::QuadTo(self.point(x1, y1), self.point(x, y)));
     }
     fn curve_to(&mut self, x1: f32, y1: f32, x2: f32, y2: f32, x: f32, y: f32) {
-        self.cmds.push(PathCommand::CurveTo(
+        self.cmds.push(PathEl::CurveTo(
             self.point(x1, y1),
             self.point(x2, y2),
             self.point(x, y),
         ));
     }
     fn close(&mut self) {
-        self.cmds.push(PathCommand::Close);
+        self.cmds.push(PathEl::ClosePath);
     }
 }

@@ -1,6 +1,6 @@
 use super::RenderResult;
 use crate::geometry;
-use crate::geometry::Pointable;
+use crate::geometry::WrapsShape;
 use egui::{Color32, Pos2, Shape, Stroke};
 
 const WHITE: Color32 = Color32::from_rgb(255, 255, 255);
@@ -12,28 +12,24 @@ pub trait EguiRenderable {
 }
 
 impl EguiRenderable for geometry::Circle {
+    //impl<U: kurbo::Shape> EguiRenderable for dyn geometry::WrapsShape {
     fn to_shapes(&self) -> RenderResult<Shapes> {
-        let c = self.center();
-        Ok(vec![Shape::Circle {
-            center: Pos2::new(c.x as f32, c.y as f32),
-            radius: 10.,
-            fill: TRANSPARENT,
+        let c = self.inner().center;
+        Ok(vec![Shape::circle_stroke(
+            Pos2::new(c.x as f32, c.y as f32),
+            self.inner().radius as f32,
             // TODO: allow stroke to be set at or before render time
-            stroke: Stroke::new(2., WHITE),
-        }])
+            Stroke::new(2., WHITE),
+        )])
     }
 }
 
-impl<T: geometry::Pathable + Pointable> EguiRenderable for T {
+impl<T: geometry::WrapsBez> EguiRenderable for T {
+    //impl<U: kurbo::Shape> EguiRenderable for dyn geometry::WrapsShape {
     fn to_shapes(&self) -> RenderResult<Shapes> {
-        let primary_path = self.to_path()?;
-        let paths = primary_path.separate()?;
-        let path_points = paths
-            .iter()
-            .map(|p| p.to_points())
-            .collect::<geometry::GeomResult<Vec<Vec<geometry::Point>>>>()?;
+        let point_groups = self.to_points();
 
-        Ok(path_points
+        Ok(point_groups
             .iter()
             .map(|path| Shape::Path {
                 points: path
