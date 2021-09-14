@@ -10,3 +10,10 @@ svg = "^0.10"
 rusttype = "^0.9"
 egui = "^0.14"
 kurbo = "0.8.1"
+
+[dev-dependencies]
+criterion = "^0.3"
+
+[[bench]]
+name = "paths"
+harness = false
