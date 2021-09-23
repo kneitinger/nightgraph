@@ -24,7 +24,7 @@ impl EguiRenderable for geometry::Circle {
     }
 }
 
-impl<T: geometry::WrapsBez> EguiRenderable for T {
+impl<T: geometry::WrapsShape> EguiRenderable for T {
     //impl<U: kurbo::Shape> EguiRenderable for dyn geometry::WrapsShape {
     fn to_shapes(&self) -> RenderResult<Shapes> {
         let point_groups = self.to_points();

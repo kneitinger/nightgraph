@@ -1,4 +1,5 @@
-use crate::render::svg::SvgRenderable;
+use crate::canvas::CanvasElement;
+use crate::render::svg::*;
 use crate::units::*;
 use kurbo::Vec2;
 use svg::{
@@ -55,9 +56,11 @@ impl Group {
         Group { raw_group }
     }
 
-    pub fn add<U: Node, T: SvgRenderable<U>>(&mut self, p: &T) {
+    pub fn add(&mut self, n: Svg) {
         // TODO: do not unwrap error once page module error handling exists
-        self.raw_group.append(p.to_svg().unwrap());
+        self.raw_group.append(match n {
+            Svg::Path(p) => p,
+        });
     }
 
     pub fn add_group(&mut self, group: &Group) {
@@ -93,9 +96,13 @@ impl Page {
         Page::new(dimensions.x, dimensions.y, pagetype.unit())
     }
 
-    pub fn add<U: Node, T: SvgRenderable<U>>(&mut self, p: &T) {
+    pub fn add(&mut self, p: &CanvasElement) {
         // TODO: do not unwrap error once page module error handling exists
-        self.doc.append(p.to_svg().unwrap());
+        for n in p.to_svgs() {
+            self.doc.append(match n {
+                Svg::Path(p) => p,
+            });
+        }
     }
 
     pub fn add_comment<T: Into<String>>(&mut self, content: T) {

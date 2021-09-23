@@ -2,6 +2,7 @@
 
 pub mod geometry;
 //pub mod geometry_3d;
+pub mod canvas;
 pub mod page;
 pub mod prelude;
 pub mod render;

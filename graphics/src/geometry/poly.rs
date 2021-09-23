@@ -1,6 +1,8 @@
-use super::{GeomError, GeomResult, Point, WrapsBez, WrapsShape};
+use super::{GeomError, GeomResult, Path, Point, Shaped, DEFAULT_ACCURACY};
 use kurbo::BezPath;
-#[derive(Debug)]
+use kurbo::Shape as KurboShape;
+
+#[derive(Debug, Clone)]
 pub struct Poly {
     inner: BezPath,
 }
@@ -22,30 +24,27 @@ impl Poly {
         }
         Ok(Self { inner })
     }
-}
-
-impl WrapsBez for Poly {}
-impl WrapsShape<BezPath> for Poly {
     fn inner(&self) -> BezPath {
         self.inner.clone()
     }
-    /*
-    fn to_path(&self) -> GeomResult<Path> {
-        self.sub_polys
-            .iter()
-            .map(|poly| poly.to_path())
-            .collect::<GeomResult<Vec<Path>>>()
-            .and_then(|v| {
-                v.into_iter()
-                    .reduce(|mut a, b| {
-                        a.append(&b);
-                        a
-                    })
-                    .ok_or_else(|| GeomError::malformed_poly("complex poly had no sub polys"))
-            })
-    }
-    */
 }
+
+impl Shaped for Poly {
+    fn to_path(&self) -> Path {
+        Path::from(self.inner())
+    }
+    fn perimeter(&self) -> f64 {
+        self.inner.perimeter(DEFAULT_ACCURACY)
+    }
+    fn contains(&self, p: Point) -> bool {
+        self.inner.contains(p)
+    }
+    fn area(&self) -> f64 {
+        self.inner.area()
+    }
+}
+
+/*
 
 // TODO: see if this is actually needed.  Can poly alone cover all the
 // cases (holes etc.)
@@ -64,9 +63,11 @@ impl ComplexPoly {
     }
 }
 
-impl WrapsBez for ComplexPoly {}
-impl WrapsShape<BezPath> for ComplexPoly {
-    fn inner(&self) -> BezPath {
+impl WrapsShape for ComplexPoly {
+    type Inner = BezPath;
+    fn inner(&self) -> Self::Inner {
         self.inner.clone()
     }
 }
+
+*/

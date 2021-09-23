@@ -1,6 +1,5 @@
-use super::{GeomError, GeomResult, Point, WrapsBez, WrapsShape};
-use kurbo::Line as KurboLine;
-use kurbo::{BezPath, ParamCurve};
+use super::{GeomResult, Path, Point, Shaped, DEFAULT_ACCURACY, DEFAULT_TOLERANCE};
+use kurbo::{Line as KurboLine, ParamCurve, Shape as KurboShape};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Line {
@@ -17,51 +16,22 @@ impl Line {
     pub fn lerp(&self, t: f64) -> Point {
         self.inner.eval(t)
     }
-}
-
-impl WrapsShape<KurboLine> for Line {
     fn inner(&self) -> KurboLine {
         self.inner
     }
 }
 
-#[derive(Debug)]
-pub struct MultiLine {
-    inner: BezPath,
-}
-
-impl MultiLine {
-    pub fn new(points: Vec<Point>) -> GeomResult<MultiLine> {
-        let mut inner = BezPath::new();
-        match points.as_slice() {
-            [first, second] => {
-                inner.move_to(*first);
-                inner.line_to(*second)
-            }
-            [first, second, rest @ ..] => {
-                inner.move_to(*first);
-                inner.line_to(*second);
-                for p in rest {
-                    inner.line_to(*p);
-                }
-            }
-            _ => {
-                return Err(GeomError::malformed_path(
-                    "MultiLine has less than two points",
-                ))
-            }
-        }
-        Ok(Self { inner })
+impl Shaped for Line {
+    fn to_path(&self) -> Path {
+        Path::from(self.inner.into_path(DEFAULT_TOLERANCE))
     }
-
-    pub fn push_point(&mut self, point: Point) {
-        self.inner.line_to(point);
+    fn perimeter(&self) -> f64 {
+        self.inner.perimeter(DEFAULT_ACCURACY)
     }
-}
-
-impl WrapsBez for MultiLine {}
-impl WrapsShape<BezPath> for MultiLine {
-    fn inner(&self) -> BezPath {
-        self.inner.clone()
+    fn contains(&self, p: Point) -> bool {
+        self.inner.contains(p)
+    }
+    fn area(&self) -> f64 {
+        self.inner.area()
     }
 }

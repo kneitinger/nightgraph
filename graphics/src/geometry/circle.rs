@@ -1,7 +1,9 @@
-use super::{Point, WrapsShape};
+use super::DEFAULT_ACCURACY;
+use super::{Path, Point, Shaped, DEFAULT_TOLERANCE};
 use kurbo::Circle as KurboCircle;
+use kurbo::Shape as KurboShape;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Circle {
     center: Point,
     radius: f64,
@@ -23,10 +25,21 @@ impl Circle {
     pub fn center(&self) -> Point {
         self.center
     }
-}
-
-impl WrapsShape<KurboCircle> for Circle {
-    fn inner(&self) -> KurboCircle {
+    pub fn inner(&self) -> KurboCircle {
         self.inner
+    }
+}
+impl Shaped for Circle {
+    fn to_path(&self) -> Path {
+        Path::from(self.inner.into_path(DEFAULT_TOLERANCE))
+    }
+    fn perimeter(&self) -> f64 {
+        self.inner.perimeter(DEFAULT_ACCURACY)
+    }
+    fn contains(&self, p: Point) -> bool {
+        self.inner.contains(p)
+    }
+    fn area(&self) -> f64 {
+        self.inner.area()
     }
 }

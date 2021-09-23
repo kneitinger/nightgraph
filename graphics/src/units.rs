@@ -1,5 +1,7 @@
 use std::fmt;
 
+pub use kurbo::{Point, Size, Vec2};
+
 #[derive(Copy, Clone)]
 pub enum Unit {
     Px,
