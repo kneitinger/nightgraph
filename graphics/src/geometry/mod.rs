@@ -1,5 +1,5 @@
+use kurbo::flatten;
 pub use kurbo::Shape as KurboShape;
-use kurbo::{flatten, BezPath};
 
 pub use kurbo::{PathEl, Point, DEFAULT_ACCURACY};
 
@@ -25,28 +25,49 @@ pub fn point<T: Into<f64>, U: Into<f64>>(x: T, y: U) -> Point {
 
 pub const DEFAULT_TOLERANCE: f64 = 0.05;
 
-pub struct Shape {
-    wrapped: Box<dyn Shaped>,
+pub enum Shape {
+    Path(Path),
+    Circle(Circle),
+    Line(Line),
+    Poly(Poly),
 }
 
-impl<T: 'static + Shaped> From<T> for Shape {
+impl<T: Shaped> From<T> for Shape {
     fn from(s: T) -> Shape {
-        Shape::new(s)
+        s.as_shape()
     }
 }
 
 impl Shape {
-    pub fn new<T: 'static + Shaped>(s: T) -> Self {
-        Shape {
-            wrapped: Box::new(s),
+    pub fn new<T: Shaped + Into<Shape>>(s: T) -> Self {
+        Shape::from(s)
+    }
+
+    fn inner(&self) -> &dyn Shaped {
+        match self {
+            Self::Path(p) => p,
+            Self::Circle(c) => c,
+            Self::Line(l) => l,
+            Self::Poly(p) => p,
         }
     }
     pub fn area(&self) -> f64 {
-        self.wrapped.area()
+        self.inner().area()
     }
     pub fn to_path(&self) -> Path {
-        self.wrapped.to_path()
+        self.inner().to_path()
     }
+    /*
+    pub fn translate(&self, v: crate::units::Vec2) -> Self {
+        let trans = kurbo::TranslateScale::translate(v);
+        Self::from(match self {
+            Self::Path(p) => Self::from(p.inner() * trans),
+            Self::Circle(c) => Self::from(c * trans),
+            Self::Line(l) => Self::from(l * trans),
+            Self::Poly(p) => Self::from(p * trans),
+        })
+    }
+    */
 }
 
 /// Represents the ability to be converted to a path, with optional hatch fill.
@@ -56,11 +77,11 @@ pub trait Shaped {
     fn perimeter(&self) -> f64;
     fn contains(&self, p: Point) -> bool;
     fn area(&self) -> f64;
+    fn as_shape(&self) -> Shape;
 
     // TODO: doesn't adequately report if a path should be closed or not.
     // to fix this, either explicitly re-add the first point to the end
     // of the vec, or include some flag in the return value
-    /*
     fn to_points(&self) -> Vec<Vec<Point>> {
         let straightened_paths = self.to_path().separate().unwrap();
         let mut point_groups = vec![];
@@ -81,13 +102,12 @@ pub trait Shaped {
         let mut path_elements = vec![];
         let callback = |el: PathEl| path_elements.push(el);
         flatten(
-            self.inner_bez().path_elements(DEFAULT_TOLERANCE),
+            self.to_path().inner().path_elements(DEFAULT_TOLERANCE),
             DEFAULT_TOLERANCE,
             callback,
         );
         Path::with_commands(path_elements.as_slice())
     }
-    */
 
     //fn to_lines(&self) -> GeomResult<Path>;
 }

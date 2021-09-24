@@ -1,4 +1,4 @@
-use super::{GeomResult, Path, Point, Shaped, DEFAULT_ACCURACY, DEFAULT_TOLERANCE};
+use super::{GeomResult, Path, Point, Shape, Shaped, DEFAULT_ACCURACY, DEFAULT_TOLERANCE};
 use kurbo::{Line as KurboLine, ParamCurve, Shape as KurboShape};
 
 #[derive(Copy, Clone, Debug)]
@@ -16,12 +16,15 @@ impl Line {
     pub fn lerp(&self, t: f64) -> Point {
         self.inner.eval(t)
     }
-    fn inner(&self) -> KurboLine {
+    pub fn inner(&self) -> KurboLine {
         self.inner
     }
 }
 
 impl Shaped for Line {
+    fn as_shape(&self) -> Shape {
+        Shape::Line(*self)
+    }
     fn to_path(&self) -> Path {
         Path::from(self.inner.into_path(DEFAULT_TOLERANCE))
     }

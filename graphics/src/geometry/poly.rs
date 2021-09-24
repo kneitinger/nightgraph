@@ -1,4 +1,4 @@
-use super::{GeomError, GeomResult, Path, Point, Shaped, DEFAULT_ACCURACY};
+use super::{GeomError, GeomResult, Path, Point, Shape, Shaped, DEFAULT_ACCURACY};
 use kurbo::BezPath;
 use kurbo::Shape as KurboShape;
 
@@ -30,6 +30,9 @@ impl Poly {
 }
 
 impl Shaped for Poly {
+    fn as_shape(&self) -> Shape {
+        Shape::Poly(self.clone())
+    }
     fn to_path(&self) -> Path {
         Path::from(self.inner())
     }

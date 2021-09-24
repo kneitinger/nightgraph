@@ -1,5 +1,5 @@
 use super::error::*;
-use super::{Shaped, DEFAULT_ACCURACY};
+use super::{Shape, Shaped, DEFAULT_ACCURACY};
 use kurbo::{BezPath, PathEl, Point, Shape as KurboShape};
 
 #[derive(Clone, Debug)]
@@ -106,6 +106,9 @@ impl Path {
 impl Shaped for Path {
     fn to_path(&self) -> Path {
         self.clone()
+    }
+    fn as_shape(&self) -> Shape {
+        Shape::Path(self.clone())
     }
     fn perimeter(&self) -> f64 {
         self.inner.perimeter(DEFAULT_ACCURACY)

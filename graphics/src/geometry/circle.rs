@@ -1,5 +1,5 @@
 use super::DEFAULT_ACCURACY;
-use super::{Path, Point, Shaped, DEFAULT_TOLERANCE};
+use super::{Path, Point, Shape, Shaped, DEFAULT_TOLERANCE};
 use kurbo::Circle as KurboCircle;
 use kurbo::Shape as KurboShape;
 
@@ -30,6 +30,9 @@ impl Circle {
     }
 }
 impl Shaped for Circle {
+    fn as_shape(&self) -> Shape {
+        Shape::Circle(self.clone())
+    }
     fn to_path(&self) -> Path {
         Path::from(self.inner.into_path(DEFAULT_TOLERANCE))
     }
