@@ -1,77 +1,55 @@
-use super::RenderResult;
-use crate::canvas::Canvas;
-use crate::canvas::CanvasElement;
-use crate::geometry;
-use crate::geometry::PathEl;
-use crate::geometry::Shape;
-use crate::geometry::Shaped;
-use svg::node::element::{path::Data, Path as SvgPath};
+use crate::canvas::*;
+use crate::geometry::{Circle, PathEl, Point, Shape};
+use svg::node::element::{path::Data, Circle as SvgCircle, Path as SvgPath};
+use svg::Document;
 
-pub enum Svg {
-    Path(SvgPath),
+pub trait Renderer {
+    fn render_svg(&self) {}
 }
 
-impl From<SvgPath> for Svg {
-    fn from(p: SvgPath) -> Self {
-        Self::Path(p)
+impl Renderer for Canvas {
+    fn render_svg(&self) {
+        let doc = Document::new()
+            .set("width", self.width())
+            .set("height", self.height());
+        let rendered_doc = self.render(doc);
+        svg::save("image.svg".to_string(), &rendered_doc).expect("Unable to save SVG");
     }
-}
-
-impl Svg {
-    /*
-    fn node<T>(&self) -> T {
-        match self {
-            Self::Path(p) => p,
-        }
-    }
-    */
 }
 
 pub trait SvgRenderable {
-    fn to_svg(&self) -> Svg;
-    fn to_svgs(&self) -> Vec<Svg> {
-        vec![self.to_svg()]
-    }
+    fn render(&self, doc: Document) -> Document;
 }
 
-pub trait SvgRenderableGroup {
-    fn to_svgs(&self) -> Vec<Svg>;
-}
-
-impl SvgRenderableGroup for CanvasElement {
-    fn to_svgs(&self) -> Vec<Svg> {
+impl SvgRenderable for CanvasElement {
+    fn render(&self, doc: Document) -> Document {
         match self {
-            Self::Canvas(c) => c.to_svgs(),
-            Self::Shape(s) => s.to_svgs(),
+            Self::Canvas(c) => c.render(doc),
+            Self::Shape(s) => s.render(doc),
         }
     }
 }
 
-impl SvgRenderableGroup for Canvas {
-    fn to_svgs(&self) -> Vec<Svg> {
+impl SvgRenderable for Canvas {
+    fn render(&self, doc: Document) -> Document {
         // [Res<Vec>, Res<Vec>]
-        self.elements()
-            .iter()
-            .map(|c| c.to_svgs())
-            .flatten()
-            .collect::<Vec<_>>()
+        self.elements().iter().fold(doc, |acc, c| c.render(acc))
     }
 }
 
-/*
-impl SvgRenderable<SvgCircle> for geometry::Circle {
-    fn to_svg(&self) -> RenderResult<SvgCircle> {
-        Ok(SvgCircle::new()
+impl SvgRenderable for Circle {
+    fn render(&self, doc: Document) -> Document {
+        let c = SvgCircle::new()
             .set("fill", "none")
             // TODO: allow stroke to be set at or before render time
             .set("stroke", "black")
             .set("stroke-width", "0.5mm")
             .set("cx", self.center().x)
             .set("cy", self.center().y)
-            .set("r", self.radius()))
+            .set("r", self.radius());
+        doc.add(c)
     }
 }
-*/
 
 /*
 impl SvgRenderable<SvgLine> for geometry::Line {
@@ -93,33 +71,36 @@ impl SvgRenderable<SvgLine> for geometry::Line {
 
 //impl<T: geometry::WrapsShape<Inner = kurbo::BezPath>> SvgRenderable<SvgPath> for T
 impl SvgRenderable for Shape {
-    //impl<T: geometry::Pathable> SvgRenderable<SvgPath> for T {
-    fn to_svg(&self) -> Svg {
-        fn t(point: &geometry::Point) -> (f64, f64) {
-            (point.x, point.y)
-        }
-        let mut d = Data::new();
-        let pathed = self.to_path();
-        let path: &kurbo::BezPath = pathed.inner();
+    fn render(&self, doc: Document) -> Document {
+        match self {
+            Self::Circle(c) => c.render(doc),
+            _ => {
+                fn t(point: &Point) -> (f64, f64) {
+                    (point.x, point.y)
+                }
+                let mut d = Data::new();
+                let path = self.to_path();
 
-        for cmd in path.elements() {
-            d = match cmd {
-                PathEl::MoveTo(p) => d.move_to(t(p)),
-                PathEl::LineTo(p) => d.line_to(t(p)),
-                PathEl::QuadTo(c, p) => d.quadratic_curve_to((t(c), t(p))),
-                PathEl::CurveTo(c1, c2, p) => d.cubic_curve_to((t(c1), t(c2), t(p))),
-                PathEl::ClosePath => d.close(),
+                for cmd in path.inner().elements() {
+                    d = match cmd {
+                        PathEl::MoveTo(p) => d.move_to(t(p)),
+                        PathEl::LineTo(p) => d.line_to(t(p)),
+                        PathEl::QuadTo(c, p) => d.quadratic_curve_to((t(c), t(p))),
+                        PathEl::CurveTo(c1, c2, p) => d.cubic_curve_to((t(c1), t(c2), t(p))),
+                        PathEl::ClosePath => d.close(),
+                    }
+                }
+
+                doc.add(
+                    SvgPath::new()
+                        .set("fill", "none")
+                        // TODO: allow stroke to be set at or before render time
+                        .set("stroke", "black")
+                        .set("stroke-width", "0.5mm")
+                        .set("fill-rule", "evenodd")
+                        .set("d", d),
+                )
             }
         }
-
-        Svg::from(
-            SvgPath::new()
-                .set("fill", "none")
-                // TODO: allow stroke to be set at or before render time
-                .set("stroke", "black")
-                .set("stroke-width", "0.5mm")
-                .set("fill-rule", "evenodd")
-                .set("d", d),
-        )
     }
 }

@@ -3,7 +3,8 @@ use std::error;
 use std::fmt;
 
 //pub mod egui;
-pub mod svg;
+mod svg;
+pub use self::svg::Renderer;
 
 pub type RenderResult<T> = Result<T, RenderError>;
 

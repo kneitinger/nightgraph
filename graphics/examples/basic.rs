@@ -2,9 +2,9 @@ use nightgraphics::prelude::*;
 use rand::prelude::*;
 
 fn main() {
-    let mut page = Page::new(10., 10., Unit::In);
+    //let mut page = Page::new(10., 10., Unit::In);
 
-    let mut canvas = Canvas::new(point(0, 0), Size::new(100., 100.));
+    let mut canvas = Canvas::new(point(0, 0), Size::new(10. * INCH, 10. * INCH));
 
     let poly = Poly::new(vec![
         point(10, 10),
@@ -48,9 +48,5 @@ fn main() {
         .unwrap();
     canvas.add(text);
 
-    for e in canvas.elements() {
-        page.add(&e);
-    }
-
-    page.save("image.svg".to_string());
+    canvas.render_svg();
 }

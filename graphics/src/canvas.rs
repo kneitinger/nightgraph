@@ -1,29 +1,31 @@
 use crate::geometry::{Shape, Shaped};
 use crate::units::{Point, Size};
 
-impl From<Canvas> for CanvasElement {
-    fn from(c: Canvas) -> Self {
-        Self::Canvas(c)
-    }
-}
-impl From<Shape> for CanvasElement {
-    fn from(s: Shape) -> Self {
-        Self::Shape(s)
-    }
-}
-impl<T: Shaped + Into<Shape> + Clone + 'static> From<T> for CanvasElement {
-    fn from(s: T) -> CanvasElement {
-        Self::Shape(Shape::new(s))
-    }
-}
-
 pub enum CanvasElement {
     Canvas(Canvas),
     Shape(Shape),
 }
 
+impl From<Canvas> for CanvasElement {
+    fn from(c: Canvas) -> Self {
+        Self::Canvas(c)
+    }
+}
+
+impl CanvasElement {}
+
+impl From<Shape> for CanvasElement {
+    fn from(s: Shape) -> Self {
+        Self::Shape(s)
+    }
+}
+impl<T: Shaped + Into<Shape> + Clone> From<T> for CanvasElement {
+    fn from(s: T) -> CanvasElement {
+        Self::Shape(Shape::new(s))
+    }
+}
+
 pub struct Canvas {
-    components: Vec<Shape>,
     elements: Vec<CanvasElement>,
     origin: Point,
     size: Size,
@@ -33,7 +35,6 @@ pub struct Canvas {
 impl Canvas {
     pub fn new(origin: Point, size: Size) -> Self {
         Self {
-            components: vec![],
             elements: vec![],
             origin,
             size,
@@ -46,6 +47,16 @@ impl Canvas {
         }
     }
 
+    pub fn width(&self) -> f64 {
+        self.size.width
+    }
+    pub fn height(&self) -> f64 {
+        self.size.height
+    }
+    pub fn origin(&self) -> Point {
+        self.origin
+    }
+
     pub fn uniform_margin_subcanvas(&self, margin: f64) -> Self {
         let origin = self.origin + (margin, margin);
         let size = self.size - Size::new(margin * 2., margin * 2.);
@@ -53,7 +64,6 @@ impl Canvas {
             origin,
             size,
             elements: vec![],
-            components: vec![],
             inner: kurbo::Rect::new(
                 origin.x,
                 origin.y,
@@ -90,13 +100,10 @@ impl Canvas {
         self.elements.push(component.into());
     }
 
-    pub fn components(&self) -> &Vec<Shape> {
-        &self.components
-    }
     pub fn elements(&self) -> &Vec<CanvasElement> {
         &self.elements
     }
-    fn inner(&self) -> kurbo::Rect {
+    pub fn inner(&self) -> kurbo::Rect {
         self.inner
     }
 }
