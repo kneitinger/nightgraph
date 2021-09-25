@@ -2,9 +2,10 @@ use crate::geometry::GeomError;
 use std::error;
 use std::fmt;
 
-//pub mod egui;
+mod egui;
 mod svg;
-pub use self::svg::Renderer;
+pub use self::egui::EguiRenderer;
+pub use self::svg::SvgRenderer;
 
 pub type RenderResult<T> = Result<T, RenderError>;
 

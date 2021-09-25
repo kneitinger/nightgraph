@@ -3,11 +3,11 @@ use crate::geometry::{Circle, PathEl, Point, Shape};
 use svg::node::element::{path::Data, Circle as SvgCircle, Path as SvgPath};
 use svg::Document;
 
-pub trait Renderer {
+pub trait SvgRenderer {
     fn render_svg(&self) {}
 }
 
-impl Renderer for Canvas {
+impl SvgRenderer for Canvas {
     fn render_svg(&self) {
         let doc = Document::new()
             .set("width", self.width())
