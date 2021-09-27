@@ -1,4 +1,6 @@
+use itertools::Itertools;
 use kurbo::flatten;
+use kurbo::PathSegIter;
 pub use kurbo::Shape as KurboShape;
 
 pub use kurbo::{
@@ -26,7 +28,7 @@ pub fn point<T: Into<f64>, U: Into<f64>>(x: T, y: U) -> Point {
     Point::new(x.into(), y.into())
 }
 
-pub const DEFAULT_TOLERANCE: f64 = 0.05;
+pub const DEFAULT_TOLERANCE: f64 = 1e-2;
 
 pub enum Shape {
     Path(Path),
@@ -60,6 +62,7 @@ impl Shape {
     pub fn to_path(&self) -> Path {
         self.inner().to_path()
     }
+
     /*
     pub fn translate(&self, v: crate::units::Vec2) -> Self {
         let trans = kurbo::TranslateScale::translate(v);
@@ -88,10 +91,59 @@ pub trait Shaped {
     fn to_path(&self) -> Path;
     fn as_bezpath(&self) -> BezPath;
     fn perimeter(&self) -> f64;
+    fn intersections(&self, other: &dyn Shaped) -> Vec<Point> {
+        if self
+            .bounding_box()
+            .intersect(other.bounding_box())
+            .is_empty()
+        {
+            return vec![];
+        }
+
+        let self_path = self.as_bezpath();
+        let self_segs = self_path.segments();
+        let other_lines = other
+            .to_points()
+            .iter()
+            .map(|v| {
+                v.iter()
+                    .tuple_windows()
+                    .map(|(a, b)| KurboLine::new(*a, *b))
+            })
+            .flatten()
+            .collect::<Vec<KurboLine>>();
+
+        self_segs
+            .map(|seg| {
+                other_lines
+                    .iter()
+                    .map(move |line| {
+                        seg.intersect_line(*line)
+                            .into_iter()
+                            .map(move |i| line.eval(i.line_t))
+                    })
+                    .flatten()
+            })
+            .flatten()
+            .collect::<Vec<Point>>()
+    }
+
     fn contains(&self, p: Point) -> bool;
     fn area(&self) -> f64;
     fn bounding_box(&self) -> kurbo::Rect;
     fn as_shape(&self) -> Shape;
+    fn closest_point(&self, p: Point) -> Point {
+        let nearest_info = self
+            .as_bezpath()
+            .segments()
+            .map(|s| {
+                let n = s.nearest(p, DEFAULT_ACCURACY);
+                (n.distance_sq, n.t, s)
+            })
+            .reduce(|a, b| if a.0 < b.0 { a } else { b })
+            .unwrap();
+        nearest_info.2.eval(nearest_info.1)
+    }
 
     // TODO: doesn't adequately report if a path should be closed or not.
     // to fix this, either explicitly re-add the first point to the end
