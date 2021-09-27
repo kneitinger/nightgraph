@@ -1,13 +1,15 @@
+use super::Shaped;
 use crate::geometry::{point, GeomError, GeomResult, Path, Point};
 use kurbo::PathEl;
-use rusttype::{Font, OutlineBuilder, Scale};
+use rusttype::{Font, OutlineBuilder, Scale, Vector};
 use std::fs::File;
 use std::io::Read;
 
 pub struct TextBuilder<'a> {
     font: Option<&'a str>,
     size: Option<f64>,
-    text: Option<&'a str>,
+    text_lines: Vec<&'a str>,
+    line_padding: Option<f64>,
     origin: Option<Point>,
 }
 
@@ -17,7 +19,8 @@ impl<'a> TextBuilder<'a> {
         Self {
             font: None,
             size: None,
-            text: None,
+            text_lines: vec![],
+            line_padding: None,
             origin: None,
         }
     }
@@ -32,8 +35,13 @@ impl<'a> TextBuilder<'a> {
         self
     }
 
-    pub fn text(mut self, text: &'a str) -> Self {
-        self.text = Some(text);
+    pub fn text_line(mut self, text: &'a str) -> Self {
+        self.text_lines.push(text);
+        self
+    }
+
+    pub fn line_padding(mut self, padding: f64) -> Self {
+        self.line_padding = Some(padding);
         self
     }
 
@@ -49,10 +57,15 @@ impl<'a> TextBuilder<'a> {
             Point::new(0., 0.)
         };
         let size = if let Some(s) = self.size { s } else { 100. } as f32;
-        let text = if let Some(t) = self.text {
-            t
+        let text_lines = if self.text_lines.len() > 0 {
+            self.text_lines
         } else {
-            "Lorem Ipsum"
+            vec!["Lorem Ipsum"]
+        };
+        let line_padding = if let Some(padding) = self.line_padding {
+            padding
+        } else {
+            50.
         };
         let font_data = if let Some(path) = self.font {
             let buf = &mut [];
@@ -65,31 +78,45 @@ impl<'a> TextBuilder<'a> {
         let font = Font::try_from_vec(font_data).ok_or_else(|| GeomError::font_error(""))?;
 
         let scale = Scale { x: size, y: size };
-        let offset = rusttype::point(origin.x as f32, origin.y as f32);
+        let base_offset = rusttype::point(origin.x as f32, origin.y as f32);
+        let mut adj_offset = base_offset;
 
-        let mut cmds = vec![];
+        let mut paths = vec![];
+        let mut combined_cmds = vec![];
 
-        let glyphs = font.layout(text, scale, offset);
-        for g in glyphs {
-            let pos = g.position();
+        for t in text_lines {
+            let mut cmds = vec![];
+            let glyphs = font.layout(t, scale, adj_offset);
+            for g in glyphs {
+                let pos = g.position();
 
-            let mut path_outliner = PathOutlineBuilder::new(point(pos.x, pos.y));
-            let unpositioned_glyph = g.unpositioned();
-            unpositioned_glyph.build_outline(&mut path_outliner);
+                let mut path_outliner = PathOutlineBuilder::new(point(pos.x, pos.y));
+                let unpositioned_glyph = g.unpositioned();
+                unpositioned_glyph.build_outline(&mut path_outliner);
 
-            // Whitespace produces a list of empty commands in path_outliner,
-            // which when passed to Path::with_commands(cmds) produces an
-            // error. In this case, we'll skip any erroneous paths, assuming
-            // that whitespace is the only thing that triggers this, however
-            // as this is used, if anything else is getting dropped, this
-            // approach can be revisited
-            if let Ok(path) = path_outliner.path() {
-                for cmd in path.commands() {
-                    cmds.push(*cmd);
+                // Whitespace produces a list of empty commands in path_outliner,
+                // which when passed to Path::with_commands(cmds) produces an
+                // error. In this case, we'll skip any erroneous paths, assuming
+                // that whitespace is the only thing that triggers this, however
+                // as this is used, if anything else is getting dropped, this
+                // approach can be revisited
+                if let Ok(path) = path_outliner.path() {
+                    for cmd in path.commands() {
+                        cmds.push(*cmd);
+                        combined_cmds.push(*cmd);
+                    }
                 }
             }
+            let p = Path::with_commands(&cmds)?;
+            adj_offset = adj_offset
+                + Vector {
+                    x: 0.0_f32,
+                    y: (p.bounding_box().height() + line_padding) as f32,
+                };
+            paths.push(p);
         }
-        Path::with_commands(&cmds)
+        //Ok(paths)
+        Path::with_commands(&combined_cmds)
     }
 }
 
