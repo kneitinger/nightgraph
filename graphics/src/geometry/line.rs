@@ -23,7 +23,7 @@ impl Line {
     pub fn translate(&self, translation: Vec2) -> Self {
         let ts = kurbo::TranslateScale::new(translation, 1.0);
         Self {
-            inner: ts * self.inner.clone(),
+            inner: ts * self.inner,
         }
     }
 }

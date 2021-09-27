@@ -1,6 +1,4 @@
-use super::{
-    GeomError, GeomResult, Path, Point, Shape, Shaped, Vec2, DEFAULT_ACCURACY, DEFAULT_TOLERANCE,
-};
+use super::{GeomError, GeomResult, Path, Point, Shape, Shaped, Vec2, DEFAULT_ACCURACY};
 use kurbo::BezPath;
 use kurbo::Shape as KurboShape;
 

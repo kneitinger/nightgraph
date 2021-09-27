@@ -1,7 +1,6 @@
 use super::error::*;
-use super::Vec2;
-use super::{Shape, Shaped, DEFAULT_ACCURACY, DEFAULT_TOLERANCE};
-use kurbo::{BezPath, PathEl, Point, Shape as KurboShape};
+use super::{PathEl, Point, Shape, Shaped, Vec2, DEFAULT_ACCURACY};
+use kurbo::{BezPath, Shape as KurboShape};
 
 #[derive(Clone, Debug)]
 pub struct Path {

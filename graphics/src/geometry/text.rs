@@ -1,6 +1,4 @@
-use super::Shaped;
-use crate::geometry::{point, GeomError, GeomResult, Path, Point};
-use kurbo::PathEl;
+use super::{point, GeomError, GeomResult, Path, PathEl, Point, Shaped};
 use rusttype::{Font, OutlineBuilder, Scale, Vector};
 use std::fs::File;
 use std::io::Read;
@@ -57,7 +55,7 @@ impl<'a> TextBuilder<'a> {
             Point::new(0., 0.)
         };
         let size = if let Some(s) = self.size { s } else { 100. } as f32;
-        let text_lines = if self.text_lines.len() > 0 {
+        let text_lines = if !self.text_lines.is_empty() {
             self.text_lines
         } else {
             vec!["Lorem Ipsum"]

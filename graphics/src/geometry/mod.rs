@@ -1,12 +1,8 @@
 use itertools::Itertools;
-use kurbo::flatten;
-use kurbo::PathSegIter;
-pub use kurbo::Shape as KurboShape;
-
-pub use kurbo::{
-    BezPath, Line as KurboLine, ParamCurve, ParamCurveNearest, PathEl, Point, Vec2,
-    DEFAULT_ACCURACY,
+use kurbo::{
+    flatten, BezPath, Line as KurboLine, ParamCurve, ParamCurveNearest, Shape as KurboShape,
 };
+pub use kurbo::{PathEl, Point, Vec2, DEFAULT_ACCURACY};
 
 mod circle;
 mod error;
