@@ -1,6 +1,7 @@
 use super::{point, GeomError, GeomResult, Path, PathEl, Point, Shaped};
 use rusttype::{Font, OutlineBuilder, Scale, Vector};
 use std::fs::File;
+use std::io::BufReader;
 use std::io::Read;
 
 pub struct TextBuilder<'a> {
@@ -66,9 +67,12 @@ impl<'a> TextBuilder<'a> {
             50.
         };
         let font_data = if let Some(path) = self.font {
-            let buf = &mut [];
-            File::open(path)?.read_exact(buf)?;
-            buf.to_vec()
+            let f = File::open(path)?;
+            let mut buf = Vec::new();
+            let mut reader = BufReader::new(f);
+
+            reader.read_to_end(&mut buf)?;
+            buf
         } else {
             include_bytes!("../../assets/Jost-500-Medium.otf").to_vec()
         };
