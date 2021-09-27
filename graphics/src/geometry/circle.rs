@@ -28,6 +28,13 @@ impl Circle {
     pub fn inner(&self) -> KurboCircle {
         self.inner
     }
+
+    pub fn translate(&self, translation: Vec2) -> Self {
+        let ts = kurbo::TranslateScale::new(translation, 1.0);
+        Self {
+            inner: ts * self.inner,
+        }
+    }
 }
 impl Shaped for Circle {
     fn as_shape(&self) -> Shape {

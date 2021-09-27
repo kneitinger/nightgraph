@@ -19,6 +19,13 @@ impl Line {
     pub fn inner(&self) -> KurboLine {
         self.inner
     }
+
+    pub fn translate(&self, translation: Vec2) -> Self {
+        let ts = kurbo::TranslateScale::new(translation, 1.0);
+        Self {
+            inner: ts * self.inner.clone(),
+        }
+    }
 }
 
 impl Shaped for Line {

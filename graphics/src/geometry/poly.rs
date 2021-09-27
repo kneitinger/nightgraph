@@ -27,6 +27,13 @@ impl Poly {
     fn inner(&self) -> BezPath {
         self.inner.clone()
     }
+
+    pub fn translate(&self, translation: Vec2) -> Self {
+        let ts = kurbo::TranslateScale::new(translation, 1.0);
+        Self {
+            inner: ts * self.inner.clone(),
+        }
+    }
 }
 
 impl Shaped for Poly {

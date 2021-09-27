@@ -68,6 +68,15 @@ impl Shape {
         })
     }
     */
+
+    pub fn translate(&self, translation: Vec2) -> Self {
+        match self {
+            Self::Circle(c) => Self::Circle(c.translate(translation)),
+            Self::Path(p) => Self::Path(p.translate(translation)),
+            Self::Line(l) => Self::Line(l.translate(translation)),
+            Self::Poly(p) => Self::Poly(p.translate(translation)),
+        }
+    }
 }
 
 /// Represents the ability to be converted to a path, with optional hatch fill.
