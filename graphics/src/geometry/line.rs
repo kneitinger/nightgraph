@@ -1,5 +1,5 @@
-use super::{GeomResult, Path, Point, Shape, Shaped, DEFAULT_ACCURACY, DEFAULT_TOLERANCE};
-use kurbo::{Line as KurboLine, ParamCurve, Shape as KurboShape};
+use super::{GeomResult, Path, Point, Shape, Shaped, Vec2, DEFAULT_ACCURACY, DEFAULT_TOLERANCE};
+use kurbo::{BezPath, Line as KurboLine, ParamCurve, Shape as KurboShape};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Line {
@@ -34,6 +34,9 @@ impl Shaped for Line {
     }
     fn to_path(&self) -> Path {
         Path::from(self.inner.into_path(DEFAULT_TOLERANCE))
+    }
+    fn as_bezpath(&self) -> BezPath {
+        self.inner.into_path(DEFAULT_TOLERANCE)
     }
     fn bounding_box(&self) -> kurbo::Rect {
         self.inner.bounding_box()

@@ -1,7 +1,10 @@
 use kurbo::flatten;
 pub use kurbo::Shape as KurboShape;
 
-pub use kurbo::{PathEl, Point, DEFAULT_ACCURACY};
+pub use kurbo::{
+    BezPath, Line as KurboLine, ParamCurve, ParamCurveNearest, PathEl, Point, Vec2,
+    DEFAULT_ACCURACY,
+};
 
 mod circle;
 mod error;
@@ -83,6 +86,7 @@ impl Shape {
 pub trait Shaped {
     /// Returns the verticies of the line decomposition of the shape
     fn to_path(&self) -> Path;
+    fn as_bezpath(&self) -> BezPath;
     fn perimeter(&self) -> f64;
     fn contains(&self, p: Point) -> bool;
     fn area(&self) -> f64;

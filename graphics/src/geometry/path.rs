@@ -1,5 +1,6 @@
 use super::error::*;
-use super::{Shape, Shaped, DEFAULT_ACCURACY};
+use super::Vec2;
+use super::{Shape, Shaped, DEFAULT_ACCURACY, DEFAULT_TOLERANCE};
 use kurbo::{BezPath, PathEl, Point, Shape as KurboShape};
 
 #[derive(Clone, Debug)]
@@ -113,6 +114,9 @@ impl Path {
 impl Shaped for Path {
     fn to_path(&self) -> Path {
         self.clone()
+    }
+    fn as_bezpath(&self) -> BezPath {
+        self.inner.clone()
     }
     fn as_shape(&self) -> Shape {
         Shape::Path(self.clone())

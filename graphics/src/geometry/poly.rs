@@ -1,4 +1,6 @@
-use super::{GeomError, GeomResult, Path, Point, Shape, Shaped, DEFAULT_ACCURACY};
+use super::{
+    GeomError, GeomResult, Path, Point, Shape, Shaped, Vec2, DEFAULT_ACCURACY, DEFAULT_TOLERANCE,
+};
 use kurbo::BezPath;
 use kurbo::Shape as KurboShape;
 
@@ -42,6 +44,9 @@ impl Shaped for Poly {
     }
     fn to_path(&self) -> Path {
         Path::from(self.inner())
+    }
+    fn as_bezpath(&self) -> BezPath {
+        self.inner.clone()
     }
     fn perimeter(&self) -> f64 {
         self.inner.perimeter(DEFAULT_ACCURACY)

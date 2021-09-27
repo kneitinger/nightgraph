@@ -1,5 +1,6 @@
 use super::DEFAULT_ACCURACY;
 use super::{Path, Point, Shape, Shaped, DEFAULT_TOLERANCE};
+use kurbo::BezPath;
 use kurbo::Circle as KurboCircle;
 use kurbo::Shape as KurboShape;
 
@@ -45,6 +46,9 @@ impl Shaped for Circle {
     }
     fn to_path(&self) -> Path {
         Path::from(self.inner.into_path(DEFAULT_TOLERANCE))
+    }
+    fn as_bezpath(&self) -> BezPath {
+        self.inner.into_path(DEFAULT_TOLERANCE)
     }
     fn perimeter(&self) -> f64 {
         self.inner.perimeter(DEFAULT_ACCURACY)
