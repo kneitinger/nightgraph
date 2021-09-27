@@ -1,30 +1,27 @@
+use super::Vec2;
 use super::DEFAULT_ACCURACY;
 use super::{Path, Point, Shape, Shaped, DEFAULT_TOLERANCE};
 use kurbo::BezPath;
 use kurbo::Circle as KurboCircle;
 use kurbo::Shape as KurboShape;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct Circle {
-    center: Point,
-    radius: f64,
     inner: KurboCircle,
 }
 
 impl Circle {
-    pub fn new(center: Point, radius: f64) -> Circle {
+    pub fn new(center: impl Into<Point>, radius: f64) -> Circle {
         Self {
-            center,
-            radius,
             inner: KurboCircle::new(center, radius),
         }
     }
 
     pub fn radius(&self) -> f64 {
-        self.radius
+        self.inner.radius
     }
     pub fn center(&self) -> Point {
-        self.center
+        self.inner.center
     }
     pub fn inner(&self) -> KurboCircle {
         self.inner
@@ -42,7 +39,7 @@ impl Shaped for Circle {
         self.inner.bounding_box()
     }
     fn as_shape(&self) -> Shape {
-        Shape::Circle(self.clone())
+        Shape::Circle(*self)
     }
     fn to_path(&self) -> Path {
         Path::from(self.inner.into_path(DEFAULT_TOLERANCE))
