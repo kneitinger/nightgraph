@@ -120,6 +120,9 @@ impl Shaped for Path {
     fn perimeter(&self) -> f64 {
         self.inner.perimeter(DEFAULT_ACCURACY)
     }
+    fn bounding_box(&self) -> kurbo::Rect {
+        self.inner.bounding_box()
+    }
     fn contains(&self, p: Point) -> bool {
         self.inner.contains(p)
     }

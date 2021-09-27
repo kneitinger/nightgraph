@@ -86,6 +86,7 @@ pub trait Shaped {
     fn perimeter(&self) -> f64;
     fn contains(&self, p: Point) -> bool;
     fn area(&self) -> f64;
+    fn bounding_box(&self) -> kurbo::Rect;
     fn as_shape(&self) -> Shape;
 
     // TODO: doesn't adequately report if a path should be closed or not.

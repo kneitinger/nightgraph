@@ -52,6 +52,9 @@ impl Shaped for Poly {
     fn area(&self) -> f64 {
         self.inner.area()
     }
+    fn bounding_box(&self) -> kurbo::Rect {
+        self.inner.bounding_box()
+    }
 }
 
 /*

@@ -35,6 +35,9 @@ impl Shaped for Line {
     fn to_path(&self) -> Path {
         Path::from(self.inner.into_path(DEFAULT_TOLERANCE))
     }
+    fn bounding_box(&self) -> kurbo::Rect {
+        self.inner.bounding_box()
+    }
     fn perimeter(&self) -> f64 {
         self.inner.perimeter(DEFAULT_ACCURACY)
     }

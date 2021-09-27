@@ -37,6 +37,9 @@ impl Circle {
     }
 }
 impl Shaped for Circle {
+    fn bounding_box(&self) -> kurbo::Rect {
+        self.inner.bounding_box()
+    }
     fn as_shape(&self) -> Shape {
         Shape::Circle(self.clone())
     }
