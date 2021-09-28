@@ -21,6 +21,16 @@ impl Path {
         Self { inner }
     }
 
+    pub fn from_points(points: &[Point]) -> Self {
+        let mut cmds = vec![];
+        cmds.push(PathEl::MoveTo(points[0]));
+        for i in 1..points.len() {
+            cmds.push(PathEl::LineTo(points[i]));
+        }
+
+        Path::from_commands(&cmds).unwrap()
+    }
+
     pub fn from_commands(commands: &[PathEl]) -> GeomResult<Self> {
         match commands {
             [PathEl::MoveTo(_), _, ..] => Ok(Self {
