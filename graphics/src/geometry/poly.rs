@@ -1,4 +1,4 @@
-use super::{GeomError, GeomResult, Path, Point, Shape, Shaped, Vec2, DEFAULT_ACCURACY};
+use super::*;
 use kurbo::BezPath;
 use kurbo::Shape as KurboShape;
 
@@ -8,9 +8,9 @@ pub struct Poly {
 }
 
 impl Poly {
-    pub fn new(points: Vec<Point>) -> GeomResult<Poly> {
+    pub fn new(points: &[Point]) -> GeomResult<Poly> {
         let mut inner = BezPath::new();
-        match points.as_slice() {
+        match points {
             [first, second, third, rest @ ..] => {
                 inner.move_to(*first);
                 inner.line_to(*second);
@@ -26,6 +26,12 @@ impl Poly {
     }
     fn inner(&self) -> BezPath {
         self.inner.clone()
+    }
+
+    pub fn new_smooth(points: &[Point]) -> Self {
+        Poly {
+            inner: Path::from_points_smooth_closed(points).as_bezpath(),
+        }
     }
 
     pub fn translate(&self, translation: Vec2) -> Self {

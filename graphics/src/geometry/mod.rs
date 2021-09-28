@@ -24,6 +24,10 @@ pub fn point<T: Into<f64>, U: Into<f64>>(x: T, y: U) -> Point {
     Point::new(x.into(), y.into())
 }
 
+pub fn avg_point(p1: Point, p2: Point) -> Point {
+    point((p1.x + p2.x) / 2., (p1.y + p2.y) / 2.)
+}
+
 pub const DEFAULT_TOLERANCE: f64 = 1e-2;
 
 pub enum Shape {
