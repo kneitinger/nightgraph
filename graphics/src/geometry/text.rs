@@ -97,7 +97,7 @@ impl<'a> TextBuilder<'a> {
                 unpositioned_glyph.build_outline(&mut path_outliner);
 
                 // Whitespace produces a list of empty commands in path_outliner,
-                // which when passed to Path::with_commands(cmds) produces an
+                // which when passed to Path::from_commands(cmds) produces an
                 // error. In this case, we'll skip any erroneous paths, assuming
                 // that whitespace is the only thing that triggers this, however
                 // as this is used, if anything else is getting dropped, this
@@ -109,7 +109,7 @@ impl<'a> TextBuilder<'a> {
                     }
                 }
             }
-            let p = Path::with_commands(&cmds)?;
+            let p = Path::from_commands(&cmds)?;
             adj_offset = adj_offset
                 + Vector {
                     x: 0.0_f32,
@@ -118,7 +118,7 @@ impl<'a> TextBuilder<'a> {
             paths.push(p);
         }
         //Ok(paths)
-        Path::with_commands(&combined_cmds)
+        Path::from_commands(&combined_cmds)
     }
 }
 
@@ -136,7 +136,7 @@ impl PathOutlineBuilder {
     }
 
     fn path(&self) -> GeomResult<Path> {
-        Path::with_commands(&self.cmds)
+        Path::from_commands(&self.cmds)
     }
 
     fn point(&self, x: f32, y: f32) -> Point {

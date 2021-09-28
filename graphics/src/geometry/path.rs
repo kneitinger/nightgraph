@@ -21,7 +21,7 @@ impl Path {
         Self { inner }
     }
 
-    pub fn with_commands(commands: &[PathEl]) -> GeomResult<Self> {
+    pub fn from_commands(commands: &[PathEl]) -> GeomResult<Self> {
         match commands {
             [PathEl::MoveTo(_), _, ..] => Ok(Self {
                 inner: BezPath::from_vec(Vec::from(commands)),
@@ -85,7 +85,7 @@ impl Path {
                         path_cmds.clear();
                         path_cmds.push(cmd);
                     } else {
-                        paths.push(Path::with_commands(path_cmds.as_slice())?);
+                        paths.push(Path::from_commands(path_cmds.as_slice())?);
                         path_cmds.clear();
                         path_cmds.push(cmd);
                     }
@@ -93,7 +93,7 @@ impl Path {
                 _ => path_cmds.push(cmd),
             }
         }
-        paths.push(Path::with_commands(path_cmds.as_slice())?);
+        paths.push(Path::from_commands(path_cmds.as_slice())?);
 
         Ok(paths)
     }

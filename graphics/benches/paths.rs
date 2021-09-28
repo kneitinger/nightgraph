@@ -22,7 +22,7 @@ fn path_with_commands(c: &mut Criterion) {
     }) {
         group.throughput(Throughput::Elements(c.len() as u64));
         group.bench_with_input(BenchmarkId::from_parameter(c.len()), &c, |b, c| {
-            b.iter(|| black_box(Path::with_commands(&c)))
+            b.iter(|| black_box(Path::from_commands(&c)))
         });
     }
 }

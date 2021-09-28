@@ -168,7 +168,7 @@ pub trait Shaped {
             DEFAULT_TOLERANCE,
             callback,
         );
-        Path::with_commands(path_elements.as_slice())
+        Path::from_commands(path_elements.as_slice())
     }
 
     //fn to_lines(&self) -> GeomResult<Path>;
