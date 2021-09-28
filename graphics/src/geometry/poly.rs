@@ -2,7 +2,7 @@ use super::*;
 use kurbo::BezPath;
 use kurbo::Shape as KurboShape;
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct Poly {
     inner: BezPath,
 }

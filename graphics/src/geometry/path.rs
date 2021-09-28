@@ -44,110 +44,51 @@ impl Path {
     }
 
     pub fn from_points_smooth(knots: &[Point]) -> Self {
-        Self::from_points_smooth_internal(knots, false)
-    }
-
-    pub fn from_points_smooth_closed(knots: &[Point]) -> Self {
-        Self::from_points_smooth_internal(knots, true)
-    }
-
-    fn from_points_smooth_internal(knots: &[Point], closed: bool) -> Self {
-        // From http://www.particleincell.com/2012/bezier-splines/
-        // Permission with attribution granted in example's source:
-        // http://www.particleincell.com/wp-content/uploads/2012/06/circles.svg
-        fn control_points(knots: &[f64]) -> (Vec<f64>, Vec<f64>) {
-            let n = knots.len() - 1;
-            let mut p1 = vec![0.; n];
-            let mut p2 = vec![0.; n];
-
-            /*rhs vector*/
-            let mut a = vec![0.; n];
-            let mut b = vec![0.; n];
-            let mut c = vec![0.; n];
-            let mut r = vec![0.; n];
-
-            /*left most segment*/
-            a[0] = 0.;
-            b[0] = 2.;
-            c[0] = 1.;
-            r[0] = knots[0] + 2. * knots[1];
-
-            for i in 1..n - 1 {
-                a[i] = 1.;
-                b[i] = 4.;
-                c[i] = 1.;
-                r[i] = 4. * knots[i] + 2. * knots[i + 1];
-            }
-
-            /*right segment*/
-            a[n - 1] = 2.;
-            b[n - 1] = 7.;
-            c[n - 1] = 0.;
-            r[n - 1] = 8. * knots[n - 1] + knots[n];
-
-            /*solves Ax=b with the Thomas algorithm (from Wikipedia)*/
-            for i in 1..n {
-                let m = a[i] / b[i - 1];
-                b[i] = b[i] - m * c[i - 1];
-                r[i] = r[i] - m * r[i - 1];
-            }
-
-            p1[n - 1] = r[n - 1] / b[n - 1];
-            for i in (0..=n - 2).rev() {
-                p1[i] = (r[i] - c[i] * p1[i + 1]) / b[i];
-            }
-
-            /*we have p1, now compute p2*/
-            for i in 0..n - 1 {
-                p2[i] = 2. * knots[i + 1] - p1[i + 1];
-            }
-
-            p2[n - 1] = 0.5 * (knots[n] + p1[n - 1]);
-
-            (p1, p2)
-        }
-
         if knots.len() == 2 {
             return Path::from_points(&knots);
         }
 
-        let knots = if closed {
-            let mut v = knots.to_vec();
-            let first = v[0];
-            let last = v[v.len() - 1];
-
-            let avg = avg_point(first, last);
-            let f_avg = avg_point(avg, first);
-            let l_avg = avg_point(avg, last);
-
-            v.insert(0, f_avg);
-            v.insert(0, avg);
-
-            v.push(l_avg);
-            v.push(avg);
-            v.push(first);
-            v
-        } else {
-            knots.to_vec()
-        };
-
         let xs: Vec<f64> = knots.iter().map(|p| p.x).collect();
         let ys: Vec<f64> = knots.iter().map(|p| p.y).collect();
-        let (cp1_xs, cp2_xs) = control_points(&xs);
-        let (cp1_ys, cp2_ys) = control_points(&ys);
-
+        let (cp1_xs, cp2_xs) = smoothing_control_values(&xs);
+        let (cp1_ys, cp2_ys) = smoothing_control_values(&ys);
         let mut cmds = vec![];
         cmds.push(PathEl::MoveTo(knots[0]));
-        let end = if closed { knots.len() - 1 } else { knots.len() };
-        for i in 2..end {
+        for i in 1..knots.len() {
             let c1 = point(cp1_xs[i - 1], cp1_ys[i - 1]);
             let c2 = point(cp2_xs[i - 1], cp2_ys[i - 1]);
             cmds.push(PathEl::CurveTo(c1, c2, knots[i]));
         }
-        if closed {
-            cmds.push(PathEl::ClosePath);
+        Path::from_commands(&cmds).unwrap()
+    }
+
+    pub fn from_points_smooth_closed(knots: &[Point]) -> Self {
+        if knots.len() == 2 {
+            return Path::from_points(&knots);
         }
 
+        let knots = {
+            let mut v = knots.to_vec();
+            for i in 0..knots.len() {
+                v.push(knots[i]);
+            }
+            v
+        };
+
+        let xs: Vec<f64> = knots.iter().map(|p| p.x).collect();
+        let ys: Vec<f64> = knots.iter().map(|p| p.y).collect();
+        let (cp1_xs, cp2_xs) = smoothing_control_values(&xs);
+        let (cp1_ys, cp2_ys) = smoothing_control_values(&ys);
+        let mut cmds = vec![];
+        cmds.push(PathEl::MoveTo(knots[knots.len() / 2 - 3]));
+        let start = knots.len() / 2 - 2;
+        let end = knots.len() - 2;
+        for i in start..end {
+            let c1 = point(cp1_xs[i - 1], cp1_ys[i - 1]);
+            let c2 = point(cp2_xs[i - 1], cp2_ys[i - 1]);
+            cmds.push(PathEl::CurveTo(c1, c2, knots[i]));
+        }
+        cmds.push(PathEl::ClosePath);
         Path::from_commands(&cmds).unwrap()
     }
 
@@ -167,11 +108,6 @@ impl Path {
     pub fn curve_to(&mut self, ctrl_point_0: Point, ctrl_point_1: Point, endpoint: Point) {
         self.inner
             .push(PathEl::CurveTo(ctrl_point_0, ctrl_point_1, endpoint));
-    }
-
-    pub fn curve_through(&mut self, _endpoint: Point) {
-        // https://www.particleincell.com/2012/bezier-splines/
-        unimplemented!();
     }
 
     pub fn close(&mut self) {
@@ -250,4 +186,60 @@ impl Shaped for Path {
     fn area(&self) -> f64 {
         self.inner.area()
     }
+}
+
+// From http://www.particleincell.com/2012/bezier-splines/
+// Permission with attribution granted in example's source:
+// http://www.particleincell.com/wp-content/uploads/2012/06/circles.svg
+fn smoothing_control_values(values: &[f64]) -> (Vec<f64>, Vec<f64>) {
+    let n = values.len() - 1;
+    let mut p1 = vec![0.; n];
+    let mut p2 = vec![0.; n];
+
+    /*rhs vector*/
+    let mut a = vec![0.; n];
+    let mut b = vec![0.; n];
+    let mut c = vec![0.; n];
+    let mut r = vec![0.; n];
+
+    // Left segment
+    a[0] = 0.;
+    b[0] = 2.;
+    c[0] = 1.;
+    r[0] = values[0] + 2. * values[1];
+
+    // Middle segments
+    for i in 1..n - 1 {
+        a[i] = 1.;
+        b[i] = 4.;
+        c[i] = 1.;
+        r[i] = 4. * values[i] + 2. * values[i + 1];
+    }
+
+    // Right segment
+    a[n - 1] = 2.;
+    b[n - 1] = 7.;
+    c[n - 1] = 0.;
+    r[n - 1] = 8. * values[n - 1] + values[n];
+
+    // Solves Ax=b with the Thomas algorithm (from Wikipedia)
+    for i in 1..n {
+        let m = a[i] / b[i - 1];
+        b[i] = b[i] - m * c[i - 1];
+        r[i] = r[i] - m * r[i - 1];
+    }
+
+    p1[n - 1] = r[n - 1] / b[n - 1];
+    for i in (0..=n - 2).rev() {
+        p1[i] = (r[i] - c[i] * p1[i + 1]) / b[i];
+    }
+
+    // Compute 2nd control points now that 1st are obtained
+    for i in 0..n - 1 {
+        p2[i] = 2. * values[i + 1] - p1[i + 1];
+    }
+
+    p2[n - 1] = 0.5 * (values[n] + p1[n - 1]);
+
+    (p1, p2)
 }
