@@ -1,4 +1,4 @@
-use super::{point, GeomError, GeomResult, Path, PathEl, Point, Shaped};
+use super::{point, GeomError, GeomResult, Path, PathEl, Point};
 use rusttype::{Font, OutlineBuilder, Scale, Vector};
 use std::fs::File;
 use std::io::BufReader;
@@ -66,6 +66,7 @@ impl<'a> TextBuilder<'a> {
         } else {
             50.
         };
+
         let font_data = if let Some(path) = self.font {
             let f = File::open(path)?;
             let mut buf = Vec::new();
@@ -76,19 +77,22 @@ impl<'a> TextBuilder<'a> {
         } else {
             include_bytes!("../../assets/Jost-500-Medium.otf").to_vec()
         };
-
         let font = Font::try_from_vec(font_data).ok_or_else(|| GeomError::font_error(""))?;
 
         let scale = Scale { x: size, y: size };
-        let base_offset = rusttype::point(origin.x as f32, origin.y as f32);
+        let v_metrics = font.v_metrics(scale);
+        let base_offset = rusttype::point(
+            origin.x as f32,
+            origin.y as f32 + (2. / 3.) * v_metrics.ascent,
+        );
         let mut adj_offset = base_offset;
 
-        let mut paths = vec![];
         let mut combined_cmds = vec![];
 
         for t in text_lines {
             let mut cmds = vec![];
             let glyphs = font.layout(t, scale, adj_offset);
+
             for g in glyphs {
                 let pos = g.position();
 
@@ -109,13 +113,11 @@ impl<'a> TextBuilder<'a> {
                     }
                 }
             }
-            let p = Path::from_commands(&cmds)?;
             adj_offset = adj_offset
                 + Vector {
-                    x: 0.0_f32,
-                    y: (p.bounding_box().height() + line_padding) as f32,
+                    x: 0.0,
+                    y: (v_metrics.ascent + line_padding as f32),
                 };
-            paths.push(p);
         }
         //Ok(paths)
         Path::from_commands(&combined_cmds)
