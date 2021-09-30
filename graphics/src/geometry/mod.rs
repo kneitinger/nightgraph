@@ -1,6 +1,7 @@
 use itertools::Itertools;
 use kurbo::{
-    flatten, BezPath, Line as KurboLine, ParamCurve, ParamCurveNearest, Shape as KurboShape,
+    flatten, BezPath, Line as KurboLine, ParamCurve, ParamCurveNearest, PathSeg,
+    Shape as KurboShape,
 };
 pub use kurbo::{PathEl, Point, Vec2, DEFAULT_ACCURACY};
 
@@ -28,7 +29,7 @@ pub fn avg_point(p1: Point, p2: Point) -> Point {
     point((p1.x + p2.x) / 2., (p1.y + p2.y) / 2.)
 }
 
-pub const DEFAULT_TOLERANCE: f64 = 1e-2;
+pub const DEFAULT_TOLERANCE: f64 = 1e-1;
 
 pub enum Shape {
     Path(Path),
@@ -63,18 +64,6 @@ impl Shape {
         self.inner().to_path()
     }
 
-    /*
-    pub fn translate(&self, v: crate::units::Vec2) -> Self {
-        let trans = kurbo::TranslateScale::translate(v);
-        Self::from(match self {
-            Self::Path(p) => Self::from(p.inner() * trans),
-            Self::Circle(c) => Self::from(c * trans),
-            Self::Line(l) => Self::from(l * trans),
-            Self::Poly(p) => Self::from(p * trans),
-        })
-    }
-    */
-
     pub fn translate(&self, translation: Vec2) -> Self {
         match self {
             Self::Circle(c) => Self::Circle(c.translate(translation)),
@@ -91,6 +80,71 @@ pub trait Shaped {
     fn to_path(&self) -> Path;
     fn as_bezpath(&self) -> BezPath;
     fn perimeter(&self) -> f64;
+    fn difference(&self, other: &dyn Shaped) -> Path {
+        if self
+            .bounding_box()
+            .intersect(other.bounding_box())
+            .is_empty()
+        {
+            return self.to_path();
+        }
+
+        let self_path = self.as_bezpath();
+        let self_segs = self_path.segments();
+        let other_flattened = other.to_lines().unwrap();
+        let other_lines = other_flattened
+            .inner()
+            .segments()
+            .map(|s| match s {
+                PathSeg::Line(l) => l,
+                _ => unreachable!(),
+            })
+            .collect::<Vec<KurboLine>>();
+
+        let mut result_segs = Vec::new();
+
+        for seg in self_segs {
+            let mut intersections = Vec::new();
+            for line in &other_lines {
+                let intersection_info = seg.intersect_line(*line);
+                for info in intersection_info {
+                    intersections.push(info.segment_t);
+                }
+            }
+            if intersections.is_empty() {
+                if !other_flattened.contains(seg.start()) {
+                    result_segs.push(seg);
+                }
+            } else {
+                intersections.sort_by(|a, b| a.partial_cmp(b).unwrap());
+                let mut ts = Vec::new();
+                if other_flattened.contains(seg.start()) {
+                    ts.push(intersections.remove(0));
+                } else {
+                    ts.push(0.);
+                }
+                if other_flattened.contains(seg.end()) {
+                    if intersections.len() > 0 {
+                        ts.push(intersections.pop().unwrap());
+                    }
+                    for i in &intersections {
+                        ts.insert(ts.len() - 1, *i);
+                    }
+                } else {
+                    for i in &intersections {
+                        ts.push(*i);
+                    }
+                    ts.push(1.0);
+                }
+                for (t0, t1) in ts.iter().tuples() {
+                    result_segs.push(seg.subsegment(*t0..*t1));
+                }
+            }
+        }
+
+        BezPath::from_path_segments(result_segs.into_iter()).into()
+    }
+
     fn intersections(&self, other: &dyn Shaped) -> Vec<Point> {
         if self
             .bounding_box()

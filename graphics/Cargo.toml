@@ -9,7 +9,8 @@ description = "Utilities for creating art"
 svg = "^0.10"
 rusttype = "^0.9"
 egui = "^0.14"
-kurbo = "0.8.1"
+#kurbo = "0.8.1"
+kurbo = { git = "https://github.com/linebender/kurbo" }
 itertools = "^0.10"
 
 [dev-dependencies]
