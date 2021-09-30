@@ -10,7 +10,7 @@ svg = "^0.10"
 rusttype = "^0.9"
 egui = "^0.14"
 #kurbo = "0.8.1"
-kurbo = { git = "https://github.com/linebender/kurbo" }
+kurbo = { git = "https://github.com/linebender/kurbo", rev = "c2ab3f7"}
 itertools = "^0.10"
 
 [dev-dependencies]
