@@ -3,7 +3,7 @@ use nightgraphics::prelude::*;
 fn main() {
     let mut canvas = Canvas::new(point(0, 0), Size::new(11. * INCH, 17. * INCH));
 
-    let poly = Poly::new(vec![
+    let poly = Poly::new(&vec![
         point(10, 10),
         point(50, 10),
         point(50, 50),
