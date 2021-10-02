@@ -2,11 +2,18 @@ use super::*;
 use std::f64::consts::{E, PI, TAU};
 
 /// Sketch description test string
-#[derive(Debug, Deserialize, Clone, Serialize, Clap)]
+#[derive(Default, Debug, Deserialize, Clone, Serialize, Clap)]
 pub struct Blossom {
     #[clap(short, long)]
     text_enabled: bool,
+
+    #[clap(short, long, default_value = "10")]
+    steps: u64,
+
+    #[clap(short, long, default_value = "65")]
+    levels: u64,
 }
+
 fn exp_dec(lambda: f64, t: f64) -> f64 {
     E.powf(-lambda * t)
 }
@@ -14,7 +21,7 @@ fn sin_component(amplitude: f64, freq: f64, t: f64, phase: f64) -> f64 {
     amplitude * (TAU * freq * t + phase).sin()
 }
 impl SketchExec for Blossom {
-    fn exec(&self) -> SketchResult {
+    fn exec(&self) -> SketchResult<Canvas> {
         const WIDTH: f64 = 11. * INCH;
         const HEIGHT: f64 = 17. * INCH;
         let mut canvas = Canvas::new(point(0, 0), Size::new(11. * INCH, 17. * INCH));

@@ -6,7 +6,7 @@ pub(crate) use serde::{Deserialize, Serialize};
 mod blossom;
 use blossom::*;
 
-pub type SketchResult = Result<Canvas, SketchError>;
+pub type SketchResult<T> = Result<T, SketchError>;
 
 #[derive(Debug)]
 pub enum SketchError {
@@ -19,15 +19,23 @@ pub enum Sketch {
 }
 
 impl Sketch {
-    pub fn exec(&self) -> SketchResult {
+    fn inner_sketch(&self) -> &dyn SketchExec {
         match self {
-            Self::Blossom(s) => s.exec(),
+            Self::Blossom(s) => s as &dyn SketchExec,
         }
+    }
+    fn inner_sketch_mut(&mut self) -> &mut dyn SketchExec {
+        match self {
+            Self::Blossom(s) => s as &mut dyn SketchExec,
+        }
+    }
+    pub fn exec(&self) -> SketchResult<Canvas> {
+        self.inner_sketch().exec()
     }
 }
 
 trait SketchExec {
-    fn exec(&self) -> SketchResult;
+    fn exec(&self) -> SketchResult<Canvas>;
 }
 
 #[cfg(test)]
