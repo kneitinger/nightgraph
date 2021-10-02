@@ -1,0 +1,16 @@
+[package]
+name = "nightgraphics-ui"
+authors = ["Kyle Kneitinger <kyle@kneit.in>"]
+version = "0.1.0"
+edition = "2018"
+description = "A UI and runner for nightgraphics sketches"
+
+[dependencies]
+eframe = "0.14.0"
+nightgraphics = { path = "../graphics" }
+sketches = { path = "../sketches" }
+serde = {version = "1.0", features = ["derive"] }
+
+[features]
+default = ["persistence"]
+persistence = ["eframe/persistence"]
