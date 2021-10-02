@@ -20,6 +20,13 @@ impl Line {
         self.inner
     }
 
+    pub fn p0(&self) -> Point {
+        self.inner.p0
+    }
+    pub fn p1(&self) -> Point {
+        self.inner.p1
+    }
+
     pub fn translate(&self, translation: Vec2) -> Self {
         let ts = kurbo::TranslateScale::new(translation, 1.0);
         Self {

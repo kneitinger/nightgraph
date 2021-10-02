@@ -22,10 +22,9 @@ impl Path {
     }
 
     pub fn from_points(points: &[Point]) -> Self {
-        let mut cmds = vec![];
-        cmds.push(PathEl::MoveTo(points[0]));
-        for i in 1..points.len() {
-            cmds.push(PathEl::LineTo(points[i]));
+        let mut cmds = vec![PathEl::MoveTo(points[0])];
+        for &p in points.iter().skip(1) {
+            cmds.push(PathEl::LineTo(p));
         }
 
         Path::from_commands(&cmds).unwrap()
@@ -45,15 +44,14 @@ impl Path {
 
     pub fn from_points_smooth(knots: &[Point]) -> Self {
         if knots.len() == 2 {
-            return Path::from_points(&knots);
+            return Path::from_points(knots);
         }
 
         let xs: Vec<f64> = knots.iter().map(|p| p.x).collect();
         let ys: Vec<f64> = knots.iter().map(|p| p.y).collect();
         let (cp1_xs, cp2_xs) = smoothing_control_values(&xs);
         let (cp1_ys, cp2_ys) = smoothing_control_values(&ys);
-        let mut cmds = vec![];
-        cmds.push(PathEl::MoveTo(knots[0]));
+        let mut cmds = vec![PathEl::MoveTo(knots[0])];
         for i in 1..knots.len() {
             let c1 = point(cp1_xs[i - 1], cp1_ys[i - 1]);
             let c2 = point(cp2_xs[i - 1], cp2_ys[i - 1]);
@@ -64,13 +62,13 @@ impl Path {
 
     pub fn from_points_smooth_closed(knots: &[Point]) -> Self {
         if knots.len() == 2 {
-            return Path::from_points(&knots);
+            return Path::from_points(knots);
         }
 
         let knots = {
             let mut v = knots.to_vec();
-            for i in 0..knots.len() {
-                v.push(knots[i]);
+            for &item in knots {
+                v.push(item);
             }
             v
         };
@@ -79,8 +77,7 @@ impl Path {
         let ys: Vec<f64> = knots.iter().map(|p| p.y).collect();
         let (cp1_xs, cp2_xs) = smoothing_control_values(&xs);
         let (cp1_ys, cp2_ys) = smoothing_control_values(&ys);
-        let mut cmds = vec![];
-        cmds.push(PathEl::MoveTo(knots[knots.len() / 2 - 3]));
+        let mut cmds = vec![PathEl::MoveTo(knots[knots.len() / 2 - 3])];
         let start = knots.len() / 2 - 2;
         let end = knots.len() - 2;
         for i in start..end {
@@ -225,8 +222,8 @@ fn smoothing_control_values(values: &[f64]) -> (Vec<f64>, Vec<f64>) {
     // Solves Ax=b with the Thomas algorithm (from Wikipedia)
     for i in 1..n {
         let m = a[i] / b[i - 1];
-        b[i] = b[i] - m * c[i - 1];
-        r[i] = r[i] - m * r[i - 1];
+        b[i] -= m * c[i - 1];
+        r[i] -= m * r[i - 1];
     }
 
     p1[n - 1] = r[n - 1] / b[n - 1];

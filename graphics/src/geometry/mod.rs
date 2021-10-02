@@ -64,6 +64,10 @@ impl Shape {
         self.inner().to_path()
     }
 
+    pub fn to_lines(&self) -> Vec<Line> {
+        self.inner().to_lines()
+    }
+
     pub fn translate(&self, translation: Vec2) -> Self {
         match self {
             Self::Circle(c) => Self::Circle(c.translate(translation)),
@@ -91,7 +95,7 @@ pub trait Shaped {
 
         let self_path = self.as_bezpath();
         let self_segs = self_path.segments();
-        let other_flattened = other.to_lines().unwrap();
+        let other_flattened = other.flattened().unwrap();
         let other_lines = other_flattened
             .inner()
             .segments()
@@ -124,7 +128,7 @@ pub trait Shaped {
                     ts.push(0.);
                 }
                 if other_flattened.contains(seg.end()) {
-                    if intersections.len() > 0 {
+                    if !intersections.is_empty() {
                         ts.push(intersections.pop().unwrap());
                     }
                     for i in &intersections {
@@ -207,7 +211,7 @@ pub trait Shaped {
         let mut point_groups = vec![];
         for p in straightened_paths {
             let mut points = vec![];
-            for cmd in p.to_lines().unwrap().commands() {
+            for cmd in p.flattened().unwrap().commands() {
                 match cmd {
                     PathEl::MoveTo(p) | PathEl::LineTo(p) => points.push(*p),
                     _ => {}
@@ -218,7 +222,7 @@ pub trait Shaped {
         point_groups
     }
 
-    fn to_lines(&self) -> GeomResult<Path> {
+    fn flattened(&self) -> GeomResult<Path> {
         let mut path_elements = vec![];
         let callback = |el: PathEl| path_elements.push(el);
         flatten(
@@ -229,5 +233,24 @@ pub trait Shaped {
         Path::from_commands(path_elements.as_slice())
     }
 
+    fn to_lines(&self) -> Vec<Line> {
+        let mut path_elements = vec![];
+        let callback = |el: PathEl| path_elements.push(el);
+        flatten(
+            self.to_path().inner().path_elements(DEFAULT_TOLERANCE),
+            DEFAULT_TOLERANCE,
+            callback,
+        );
+        let p = Path::from_commands(path_elements.as_slice()).unwrap();
+        let bez = p.inner();
+        let mut lines = Vec::new();
+        for seg in bez.segments() {
+            match seg {
+                PathSeg::Line(l) => lines.push(Line::new(l.p0, l.p1).unwrap()),
+                _ => panic!(),
+            }
+        }
+        lines
+    }
     //fn to_lines(&self) -> GeomResult<Path>;
 }
