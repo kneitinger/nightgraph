@@ -4,6 +4,7 @@ members = [
     "graphics",
     "ngfx",
     "sketches",
+    "nightgraph-derive",
     "ui",
 ]
 
