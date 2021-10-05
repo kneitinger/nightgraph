@@ -108,7 +108,7 @@ impl epi::App for NightgraphApp {
         let mut fonts = FontDefinitions::default();
         fonts.font_data.insert(
             "Jost*".to_owned(),
-            std::borrow::Cow::Borrowed(include_bytes!("../assets/Jost-400-Book.otf")),
+            std::borrow::Cow::Borrowed(include_bytes!("../../assets/Jost-400-Book.otf")),
         );
 
         // Place font at the hightest priority for proportional
