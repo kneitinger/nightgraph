@@ -1,12 +1,13 @@
 use eframe::{
     egui,
-    egui::{Color32, Painter, Pos2, Shape as EguiShape, Vec2},
     egui::{FontDefinitions, FontFamily, Style},
     epi,
 };
 use nightgraphics::render::EguiRenderer;
-use serde::{Deserialize, Serialize};
-use sketches::Sketch;
+use sketches::{Param, ParamKind, SketchList};
+
+mod drawing;
+use drawing::Drawing;
 
 #[cfg_attr(feature = "persistence", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "persistence", serde(default))]
@@ -15,141 +16,76 @@ pub struct NightgraphApp {
     // and associated info is actually stored in the app state
     #[serde(skip)]
     drawing: Drawing,
+
+    sketch: SketchList,
+    #[serde(skip)]
+    params: Vec<Param>,
+    // TODO: previous sessions mode using persistence.
+    // saves the sketch struct values, but not the rendered shapes
 }
 
 impl Default for NightgraphApp {
     fn default() -> Self {
+        let sketch = SketchList::default();
+        let params = sketch.params();
         Self {
+            sketch,
             drawing: Drawing::default(),
+            params,
         }
     }
 }
 
-#[derive(Deserialize, Serialize)]
-struct Drawing {
-    #[serde(skip)]
-    shapes: Vec<egui::Shape>,
+impl NightgraphApp {
+    fn param_grid_contents(&mut self, ui: &mut egui::Ui) {
+        for param in &self.params {
+            let sketch = &mut self.sketch;
+            let drawing = &mut self.drawing;
+            let id = param.id();
+            match param.kind {
+                ParamKind::Text => {
+                    // Multiline text box by default, but single line if
+                    // a hint exists
+                }
+                ParamKind::Int => {}
+                ParamKind::Float => {}
+                ParamKind::UFloat => {}
+                ParamKind::UInt => {
+                    ui.label(param.name);
+                    ui.add(egui::widgets::DragValue::from_get_set(
+                        move |v: Option<f64>| {
+                            if let Some(v) = v {
+                                sketch.set_uint_by_id(id, v as u64).unwrap();
+                                println!("sdfsd");
+                                drawing.rerender(sketch.exec().unwrap().render_egui())
+                            }
+                            sketch.get_uint_by_id(id).unwrap() as f64
+                        },
+                    ));
 
-    sketch_rect: egui::Rect,
-    translation: Vec2,
-    zoom: f32,
-    init: bool,
-    draw_debug_geom: bool,
-    draw_page_outline: bool,
-}
+                    // Number box by default, slider,etc. with hint
+                }
+                ParamKind::Bool => {
+                    // Checkbox/Label Button box by default
+                    let val = sketch.get_mut_ref_bool_by_id(id).unwrap();
+                    let init_val = *val;
 
-impl Default for Drawing {
-    fn default() -> Self {
-        let (sketch_size, shapes) = Sketch::default().exec().unwrap().render_egui();
-        let sketch_rect = egui::Rect::from_min_size(Pos2::ZERO, sketch_size);
-        Self {
-            shapes,
-            sketch_rect,
-            translation: Vec2::new(0., 0.),
-            zoom: 1.,
-            init: false,
-            draw_debug_geom: false,
-            draw_page_outline: false,
-        }
-    }
-}
-
-impl Drawing {
-    fn translate_scale(&mut self, transformation: egui::math::RectTransform) -> Vec<EguiShape> {
-        self.shapes
-            .iter()
-            .map(|shape| match shape {
-                EguiShape::Circle {
-                    center,
-                    radius,
-                    fill: _,
-                    stroke,
-                } => EguiShape::circle_stroke(
-                    transformation * *center,
-                    radius * transformation.scale().x,
-                    *stroke,
-                ),
-                EguiShape::LineSegment { points, stroke } => EguiShape::line_segment(
-                    [transformation * points[0], transformation * points[1]],
-                    *stroke,
-                ),
-                EguiShape::Rect {
-                    rect,
-                    corner_radius,
-                    fill: _,
-                    stroke,
-                } => EguiShape::rect_stroke(
-                    transformation.transform_rect(*rect),
-                    *corner_radius,
-                    *stroke,
-                ),
-                _ => EguiShape::Noop,
-            })
-            .collect()
-    }
-    pub fn ui_content(&mut self, ui: &mut egui::Ui) {
-        fn circ(painter: &Painter, center: Pos2, radius: f32, color: Color32) {
-            painter.add(EguiShape::circle_stroke(
-                center,
-                radius,
-                egui::Stroke::new(5., color),
-            ));
-        }
-        let (response, painter) = ui.allocate_painter(
-            ui.available_size_before_wrap_finite(),
-            egui::Sense::hover().union(egui::Sense::drag()),
-        );
-
-        let phy_rect = response.rect;
-
-        if self.draw_debug_geom {
-            circ(&painter, phy_rect.min, 8., Color32::LIGHT_BLUE);
-            circ(&painter, phy_rect.center(), 8., Color32::LIGHT_BLUE);
-        }
-
-        if !self.init {
-            self.translation = self.sketch_rect.center() - phy_rect.center();
-            self.zoom = phy_rect.height() / self.sketch_rect.height();
-            self.zoom *= 0.9;
-            self.init = true;
-        }
-        if response.drag_delta() != Vec2::ZERO {
-            // Dividing by self.zoom ensures that the move amount corresponds
-            // with the mouse movement to the user
-            self.translation -= response.drag_delta() / self.zoom;
-        }
-
-        let to_screen = egui::math::RectTransform::from_to(
-            egui::Rect::from_center_size(
-                phy_rect.center() + self.translation,
-                phy_rect.size() / self.zoom,
-            ),
-            phy_rect,
-        );
-
-        let scroll_delta = ui.input().scroll_delta.y;
-        let mouse_pos = ui.input().pointer.interact_pos();
-        if scroll_delta != 0.0 && ui.rect_contains_pointer(phy_rect) {
-            if let Some(_pos) = mouse_pos {
-                let scroll_adj = if scroll_delta > 0. { 1.1 } else { 0.9 };
-                self.zoom *= scroll_adj;
+                    ui.label(param.name);
+                    ui.add(egui::widgets::Checkbox::new(val, ""));
+                    if *val != init_val {
+                        drawing.rerender(sketch.exec().unwrap().render_egui());
+                    }
+                }
             }
+            ui.end_row();
         }
-
-        let log_rect = to_screen.transform_rect(self.sketch_rect);
-        if self.draw_debug_geom {
-            circ(&painter, log_rect.min, 10., Color32::GREEN);
-            circ(&painter, log_rect.center(), 10., Color32::GREEN);
-        }
-        if self.draw_page_outline {
-            painter.add(EguiShape::rect_stroke(
-                to_screen.transform_rect(self.sketch_rect),
-                0.,
-                egui::Stroke::new(2., Color32::WHITE),
-            ));
-        }
-
-        painter.extend(self.translate_scale(to_screen));
+    }
+    fn param_grid(&mut self, ui: &mut egui::Ui) {
+        egui::Grid::new("params_grid")
+            .num_columns(2)
+            .spacing([40.0, 4.0])
+            .striped(false)
+            .show(ui, |ui| self.param_grid_contents(ui));
     }
 }
 
@@ -160,7 +96,7 @@ impl epi::App for NightgraphApp {
 
     fn setup(
         &mut self,
-        _ctx: &egui::CtxRef,
+        ctx: &egui::CtxRef,
         _frame: &mut epi::Frame<'_>,
         _storage: Option<&dyn epi::Storage>,
     ) {
@@ -203,7 +139,8 @@ impl epi::App for NightgraphApp {
         epi::set_value(storage, epi::APP_KEY, self);
     }
 
-    fn update(&mut self, ctx: &egui::CtxRef, frame: &mut epi::Frame<'_>) {
+    fn update(&mut self, ctx: &egui::CtxRef, _frame: &mut epi::Frame<'_>) {
+        /*
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             // The top panel is often a good place for a menu bar:
             egui::menu::bar(ui, |ui| {
@@ -214,20 +151,36 @@ impl epi::App for NightgraphApp {
                 });
             });
         });
+        */
 
         egui::SidePanel::left("side_panel")
-            .default_width(200.0)
+            //.default_width(240.0)
+            .min_width(150.)
             .show(ctx, |ui| {
                 ui.heading("nightgraph ui");
                 egui::warn_if_debug_build(ui);
-                ui.checkbox(&mut self.drawing.draw_debug_geom, "Draw debug geometry");
-                ui.checkbox(&mut self.drawing.draw_page_outline, "Draw page outline");
+
+                ui.add(egui::Separator::default().spacing(15.));
+
+                ui.collapsing("View Settings", |ui| {
+                    ui.checkbox(&mut self.drawing.draw_debug_geom, "Draw debug geometry");
+                    ui.checkbox(&mut self.drawing.draw_page_outline, "Draw page outline");
+                    egui::color_picker::color_edit_button_srgba(
+                        ui,
+                        &mut self.drawing.bg_color,
+                        egui::color_picker::Alpha::OnlyBlend,
+                    );
+                });
+                self.param_grid(ui);
             });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            egui::Frame::dark_canvas(ui.style()).show(ui, |ui| {
-                self.drawing.ui_content(ui);
-            });
+            egui::Frame::dark_canvas(ui.style())
+                .fill(self.drawing.bg_color)
+                .margin((0., 0.))
+                .show(ui, |ui| {
+                    self.drawing.ui_content(ui);
+                });
         });
     }
 }
