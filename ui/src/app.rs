@@ -1,6 +1,7 @@
 use eframe::{
     egui,
     egui::{Color32, Painter, Pos2, Shape as EguiShape, Vec2},
+    egui::{FontDefinitions, FontFamily, Style},
     epi,
 };
 use nightgraphics::render::EguiRenderer;
@@ -167,6 +168,34 @@ impl epi::App for NightgraphApp {
         if let Some(storage) = _storage {
             *self = epi::get_value(storage, epi::APP_KEY).unwrap_or_default()
         }
+
+        let mut fonts = FontDefinitions::default();
+        fonts.font_data.insert(
+            "Jost*".to_owned(),
+            std::borrow::Cow::Borrowed(include_bytes!("../assets/Jost-400-Book.otf")),
+        );
+
+        // Place font at the hightest priority for proportional
+        fonts
+            .fonts_for_family
+            .get_mut(&FontFamily::Proportional)
+            .unwrap()
+            .insert(0, "Jost*".to_owned());
+
+        // Place font at the lowest priority for monospace
+        fonts
+            .fonts_for_family
+            .get_mut(&FontFamily::Monospace)
+            .unwrap()
+            .push("Jost*".to_owned());
+
+        ctx.set_fonts(fonts);
+
+        let style = Style {
+            visuals: egui::Visuals::light(),
+            ..Default::default()
+        };
+        ctx.set_style(style);
     }
 
     #[cfg(feature = "persistence")]
