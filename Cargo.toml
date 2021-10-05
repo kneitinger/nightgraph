@@ -6,3 +6,6 @@ members = [
     "sketches",
     "ui",
 ]
+
+[profile.release]
+opt-level = 2 # fast and small wasm
