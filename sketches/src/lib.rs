@@ -12,7 +12,14 @@ pub type SketchResult<T> = Result<T, SketchError>;
 pub enum SketchError {
     Todo(String),
     ParamError(String),
+    GraphicsError(GeomError),
     ConvertError,
+}
+
+impl From<GeomError> for SketchError {
+    fn from(err: GeomError) -> Self {
+        Self::GraphicsError(err)
+    }
 }
 
 #[derive(Subcommand, Serialize, Deserialize)]
@@ -79,48 +86,27 @@ impl SketchList {
     pub fn params(&self) -> Vec<Param> {
         self.inner_sketch().params()
     }
-    pub fn set_float_by_id(&mut self, id: u8, val: f64) -> SketchResult<()> {
-        self.inner_sketch_mut().set_float_by_id(id, val)
+    pub fn mut_float_by_id(&mut self, id: u8) -> SketchResult<&mut f64> {
+        self.inner_sketch_mut().mut_float_by_id(id)
     }
-    pub fn set_int_by_id(&mut self, id: u8, val: i64) -> SketchResult<()> {
-        self.inner_sketch_mut().set_int_by_id(id, val)
+    pub fn mut_int_by_id(&mut self, id: u8) -> SketchResult<&mut i64> {
+        self.inner_sketch_mut().mut_int_by_id(id)
     }
-    pub fn set_uint_by_id(&mut self, id: u8, val: u64) -> SketchResult<()> {
-        self.inner_sketch_mut().set_uint_by_id(id, val)
-    }
-    pub fn set_bool_by_id(&mut self, id: u8, val: bool) -> SketchResult<()> {
-        self.inner_sketch_mut().set_bool_by_id(id, val)
-    }
-    pub fn get_float_by_id(&self, id: u8) -> SketchResult<f64> {
-        self.inner_sketch().get_float_by_id(id)
-    }
-    pub fn get_int_by_id(&self, id: u8) -> SketchResult<i64> {
-        self.inner_sketch().get_int_by_id(id)
-    }
-    pub fn get_uint_by_id(&self, id: u8) -> SketchResult<u64> {
-        self.inner_sketch().get_uint_by_id(id)
-    }
-    pub fn get_bool_by_id(&self, id: u8) -> SketchResult<bool> {
-        self.inner_sketch().get_bool_by_id(id)
+    pub fn mut_uint_by_id(&mut self, id: u8) -> SketchResult<&mut u64> {
+        self.inner_sketch_mut().mut_uint_by_id(id)
     }
 
-    pub fn get_mut_ref_bool_by_id(&mut self, id: u8) -> SketchResult<&mut bool> {
-        self.inner_sketch_mut().get_mut_ref_bool_by_id(id)
+    pub fn mut_bool_by_id(&mut self, id: u8) -> SketchResult<&mut bool> {
+        self.inner_sketch_mut().mut_bool_by_id(id)
     }
 }
 
 trait SketchExec {
     fn params(&self) -> Vec<Param>;
-    fn get_float_by_id(&self, id: u8) -> SketchResult<f64>;
-    fn get_int_by_id(&self, id: u8) -> SketchResult<i64>;
-    fn get_uint_by_id(&self, id: u8) -> SketchResult<u64>;
-    fn get_bool_by_id(&self, id: u8) -> SketchResult<bool>;
-    fn set_float_by_id(&mut self, id: u8, val: f64) -> SketchResult<()>;
-    fn set_int_by_id(&mut self, id: u8, val: i64) -> SketchResult<()>;
-    fn set_uint_by_id(&mut self, id: u8, val: u64) -> SketchResult<()>;
-    fn set_bool_by_id(&mut self, id: u8, val: bool) -> SketchResult<()>;
-
-    fn get_mut_ref_bool_by_id(&mut self, id: u8) -> SketchResult<&mut bool>;
+    fn mut_float_by_id(&mut self, id: u8) -> SketchResult<&mut f64>;
+    fn mut_int_by_id(&mut self, id: u8) -> SketchResult<&mut i64>;
+    fn mut_uint_by_id(&mut self, id: u8) -> SketchResult<&mut u64>;
+    fn mut_bool_by_id(&mut self, id: u8) -> SketchResult<&mut bool>;
 
     fn get_kind_by_id(&mut self, id: u8) -> SketchResult<ParamKind> {
         Ok(self

@@ -50,28 +50,23 @@ impl NightgraphApp {
                 ParamKind::Int => {}
                 ParamKind::Float => {}
                 ParamKind::UInt => {
-                    ui.label(param.name);
-                    ui.add(egui::widgets::DragValue::from_get_set(
-                        move |v: Option<f64>| {
-                            if let Some(v) = v {
-                                sketch.set_uint_by_id(id, v as u64).unwrap();
-                                println!("sdfsd");
-                                drawing.rerender(sketch.exec().unwrap().render_egui())
-                            }
-                            sketch.get_uint_by_id(id).unwrap() as f64
-                        },
-                    ));
-
                     // Number box by default, slider,etc. with hint
+                    ui.label(param.name);
+                    let val = sketch.mut_uint_by_id(id).unwrap();
+                    let init = *val;
+                    ui.add(egui::widgets::DragValue::new(val));
+                    if *val != init {
+                        drawing.rerender(sketch.exec().unwrap().render_egui());
+                    }
                 }
                 ParamKind::Bool => {
                     // Checkbox/Label Button box by default
-                    let val = sketch.get_mut_ref_bool_by_id(id).unwrap();
-                    let init_val = *val;
+                    let val = sketch.mut_bool_by_id(id).unwrap();
+                    let init = *val;
 
                     ui.label(param.name);
                     ui.add(egui::widgets::Checkbox::new(val, ""));
-                    if *val != init_val {
+                    if *val != init {
                         drawing.rerender(sketch.exec().unwrap().render_egui());
                     }
                 }

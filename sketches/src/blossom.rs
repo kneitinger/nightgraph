@@ -70,58 +70,27 @@ impl SketchExec for Blossom {
         ]
     }
 
-    fn get_float_by_id(&self, id: u8) -> SketchResult<f64> {
+    fn mut_float_by_id(&mut self, id: u8) -> SketchResult<&mut f64> {
         match id {
             _ => Err(SketchError::ConvertError),
         }
     }
 
-    fn set_float_by_id(&mut self, id: u8, _val: f64) -> SketchResult<()> {
-        match id {
-            _ => Err(SketchError::ConvertError),
-        }
-    }
-    fn get_int_by_id(&self, id: u8) -> SketchResult<i64> {
-        match id {
-            _ => Err(SketchError::ConvertError),
-        }
-    }
-    fn set_int_by_id(&mut self, id: u8, _val: i64) -> SketchResult<()> {
+    fn mut_int_by_id(&mut self, id: u8) -> SketchResult<&mut i64> {
         match id {
             _ => Err(SketchError::ConvertError),
         }
     }
 
-    fn get_uint_by_id(&self, id: u8) -> SketchResult<u64> {
+    fn mut_uint_by_id(&mut self, id: u8) -> SketchResult<&mut u64> {
         match id {
-            0 => Ok(self.levels),
-            1 => Ok(self.steps),
-            _ => Err(SketchError::ConvertError),
-        }
-    }
-    fn set_uint_by_id(&mut self, id: u8, val: u64) -> SketchResult<()> {
-        match id {
-            0 => Ok(self.levels = val),
-            1 => Ok(self.steps = val),
-            _ => Err(SketchError::ConvertError),
-        }
-    }
-    fn get_bool_by_id(&self, id: u8) -> SketchResult<bool> {
-        match id {
-            2 => Ok(self.text_enabled),
-            3 => Ok(self.spiral),
-            _ => Err(SketchError::ConvertError),
-        }
-    }
-    fn set_bool_by_id(&mut self, id: u8, val: bool) -> SketchResult<()> {
-        match id {
-            2 => Ok(self.text_enabled = val),
-            3 => Ok(self.spiral = val),
+            0 => Ok(&mut self.levels),
+            1 => Ok(&mut self.steps),
             _ => Err(SketchError::ConvertError),
         }
     }
 
-    fn get_mut_ref_bool_by_id(&mut self, id: u8) -> SketchResult<&mut bool> {
+    fn mut_bool_by_id(&mut self, id: u8) -> SketchResult<&mut bool> {
         match id {
             2 => Ok(&mut self.text_enabled),
             3 => Ok(&mut self.spiral),
