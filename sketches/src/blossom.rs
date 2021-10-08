@@ -70,16 +70,12 @@ impl SketchExec for Blossom {
         ]
     }
 
-    fn mut_float_by_id(&mut self, id: u8) -> SketchResult<&mut f64> {
-        match id {
-            _ => Err(SketchError::ConvertError),
-        }
+    fn mut_float_by_id(&mut self, _id: u8) -> SketchResult<&mut f64> {
+        Err(SketchError::ConvertError)
     }
 
-    fn mut_int_by_id(&mut self, id: u8) -> SketchResult<&mut i64> {
-        match id {
-            _ => Err(SketchError::ConvertError),
-        }
+    fn mut_int_by_id(&mut self, _id: u8) -> SketchResult<&mut i64> {
+        Err(SketchError::ConvertError)
     }
 
     fn mut_uint_by_id(&mut self, id: u8) -> SketchResult<&mut u64> {

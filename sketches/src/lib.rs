@@ -121,12 +121,8 @@ trait SketchExec {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     #[test]
     fn test_param_set_types() {
-        let mut sketch = SketchList::Blossom(Blossom::default());
-        let params = sketch.params();
-
         assert_eq!(2 + 2, 4);
     }
 }
