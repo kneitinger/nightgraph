@@ -48,7 +48,7 @@ impl Default for Drawing {
 impl Drawing {
     pub fn rerender(&mut self, render_data: (Vec2, Vec<EguiShape>)) {
         let (sketch_size, shapes) = render_data;
-        self.shapes = shapes.to_owned();
+        self.shapes = shapes;
         self.sketch_rect = egui::Rect::from_min_size(Pos2::ZERO, sketch_size);
     }
     fn translate_scale(&mut self, transformation: egui::math::RectTransform) -> Vec<EguiShape> {

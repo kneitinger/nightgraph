@@ -188,6 +188,7 @@ impl Shaped for Path {
 // From http://www.particleincell.com/2012/bezier-splines/
 // Permission with attribution granted in example's source:
 // http://www.particleincell.com/wp-content/uploads/2012/06/circles.svg
+#[allow(clippy::many_single_char_names)]
 fn smoothing_control_values(values: &[f64]) -> (Vec<f64>, Vec<f64>) {
     let n = values.len() - 1;
     let mut p1 = vec![0.; n];
