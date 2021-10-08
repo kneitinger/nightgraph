@@ -28,12 +28,11 @@ impl Default for SketchList {
 
 #[derive(Copy, Clone)]
 pub enum ParamKind {
-    Text,
     Int,
     Float,
-    UFloat,
     UInt,
     Bool,
+    Unsupported,
 }
 
 #[derive(Copy, Clone)]

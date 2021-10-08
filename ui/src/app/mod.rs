@@ -47,13 +47,8 @@ impl NightgraphApp {
             let drawing = &mut self.drawing;
             let id = param.id();
             match param.kind {
-                ParamKind::Text => {
-                    // Multiline text box by default, but single line if
-                    // a hint exists
-                }
                 ParamKind::Int => {}
                 ParamKind::Float => {}
-                ParamKind::UFloat => {}
                 ParamKind::UInt => {
                     ui.label(param.name);
                     ui.add(egui::widgets::DragValue::from_get_set(
@@ -80,6 +75,8 @@ impl NightgraphApp {
                         drawing.rerender(sketch.exec().unwrap().render_egui());
                     }
                 }
+                // Showing a label with param name and unsupported would by nice
+                ParamKind::Unsupported => {}
             }
             ui.end_row();
         }
