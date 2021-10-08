@@ -18,10 +18,13 @@ pub struct NightgraphApp {
     drawing: Drawing,
 
     sketch: SketchList,
-    #[serde(skip)]
-    params: Vec<Param>,
+
+    ui_scale: Option<f32>,
+
     // TODO: previous sessions mode using persistence.
     // saves the sketch struct values, but not the rendered shapes
+    #[serde(skip)]
+    params: Vec<Param>,
 }
 
 impl Default for NightgraphApp {
@@ -32,6 +35,7 @@ impl Default for NightgraphApp {
             sketch,
             drawing: Drawing::default(),
             params,
+            ui_scale: Default::default(),
         }
     }
 }
@@ -140,18 +144,7 @@ impl epi::App for NightgraphApp {
     }
 
     fn update(&mut self, ctx: &egui::CtxRef, _frame: &mut epi::Frame<'_>) {
-        /*
-        egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
-            // The top panel is often a good place for a menu bar:
-            egui::menu::bar(ui, |ui| {
-                egui::menu::menu(ui, "File", |ui| {
-                    if ui.button("Quit").clicked() {
-                        frame.quit();
-                    }
-                });
-            });
-        });
-        */
+        ctx.set_pixels_per_point(1.5);
 
         egui::SidePanel::left("side_panel")
             //.default_width(240.0)
