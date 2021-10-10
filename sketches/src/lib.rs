@@ -70,14 +70,14 @@ trait ParamCast {
 }
 
 impl SketchList {
-    fn inner_sketch(&self) -> &dyn SketchExec {
+    fn inner_sketch(&self) -> &dyn Sketch {
         match self {
-            Self::Blossom(s) => s as &dyn SketchExec,
+            Self::Blossom(s) => s as &dyn Sketch,
         }
     }
-    fn inner_sketch_mut(&mut self) -> &mut dyn SketchExec {
+    fn inner_sketch_mut(&mut self) -> &mut dyn Sketch {
         match self {
-            Self::Blossom(s) => s as &mut dyn SketchExec,
+            Self::Blossom(s) => s as &mut dyn Sketch,
         }
     }
     pub fn exec(&self) -> SketchResult<Canvas> {
@@ -101,7 +101,11 @@ impl SketchList {
     }
 }
 
-trait SketchExec {
+trait Sketch: SketchAccess {
+    fn exec(&self) -> SketchResult<Canvas>;
+}
+
+trait SketchAccess {
     fn params(&self) -> Vec<Param>;
     fn mut_float_by_id(&mut self, id: u8) -> SketchResult<&mut f64>;
     fn mut_int_by_id(&mut self, id: u8) -> SketchResult<&mut i64>;
@@ -116,7 +120,6 @@ trait SketchExec {
             .ok_or_else(|| SketchError::ParamError(format!("Invalid id: {}", id)))?
             .kind)
     }
-    fn exec(&self) -> SketchResult<Canvas>;
 }
 
 #[cfg(test)]

@@ -36,64 +36,8 @@ fn exp_dec(lambda: f64, t: f64) -> f64 {
 fn sin_component(amplitude: f64, freq: f64, t: f64, phase: f64) -> f64 {
     amplitude * (TAU * freq * t + phase).sin()
 }
-impl SketchExec for Blossom {
-    fn params(&self) -> Vec<Param> {
-        vec![
-            Param {
-                id: 0,
-                name: "levels",
-                description: "foo",
-                kind: ParamKind::UInt,
-                ui_hint: None,
-            },
-            Param {
-                id: 1,
-                name: "steps",
-                description: "foo",
-                kind: ParamKind::UInt,
-                ui_hint: None,
-            },
-            Param {
-                id: 2,
-                name: "text_enabled",
-                description: "foo",
-                kind: ParamKind::Bool,
-                ui_hint: None,
-            },
-            Param {
-                id: 3,
-                name: "spiral",
-                description: "foo",
-                kind: ParamKind::Bool,
-                ui_hint: None,
-            },
-        ]
-    }
 
-    fn mut_float_by_id(&mut self, _id: u8) -> SketchResult<&mut f64> {
-        Err(SketchError::ConvertError)
-    }
-
-    fn mut_int_by_id(&mut self, _id: u8) -> SketchResult<&mut i64> {
-        Err(SketchError::ConvertError)
-    }
-
-    fn mut_uint_by_id(&mut self, id: u8) -> SketchResult<&mut u64> {
-        match id {
-            0 => Ok(&mut self.levels),
-            1 => Ok(&mut self.steps),
-            _ => Err(SketchError::ConvertError),
-        }
-    }
-
-    fn mut_bool_by_id(&mut self, id: u8) -> SketchResult<&mut bool> {
-        match id {
-            2 => Ok(&mut self.text_enabled),
-            3 => Ok(&mut self.spiral),
-            _ => Err(SketchError::ConvertError),
-        }
-    }
-
+impl Sketch for Blossom {
     fn exec(&self) -> SketchResult<Canvas> {
         const WIDTH: f64 = 11. * INCH;
         const HEIGHT: f64 = 17. * INCH;
@@ -158,5 +102,64 @@ impl SketchExec for Blossom {
         }
 
         Ok(canvas)
+    }
+}
+
+impl SketchAccess for Blossom {
+    fn params(&self) -> Vec<Param> {
+        vec![
+            Param {
+                id: 0,
+                name: "levels",
+                description: "foo",
+                kind: ParamKind::UInt,
+                ui_hint: None,
+            },
+            Param {
+                id: 1,
+                name: "steps",
+                description: "foo",
+                kind: ParamKind::UInt,
+                ui_hint: None,
+            },
+            Param {
+                id: 2,
+                name: "text_enabled",
+                description: "foo",
+                kind: ParamKind::Bool,
+                ui_hint: None,
+            },
+            Param {
+                id: 3,
+                name: "spiral",
+                description: "foo",
+                kind: ParamKind::Bool,
+                ui_hint: None,
+            },
+        ]
+    }
+
+    fn mut_float_by_id(&mut self, _id: u8) -> SketchResult<&mut f64> {
+        Err(SketchError::ConvertError)
+    }
+
+    fn mut_int_by_id(&mut self, _id: u8) -> SketchResult<&mut i64> {
+        Err(SketchError::ConvertError)
+    }
+
+    fn mut_uint_by_id(&mut self, id: u8) -> SketchResult<&mut u64> {
+        match id {
+            0 => Ok(&mut self.levels),
+            1 => Ok(&mut self.steps),
+            _ => Err(SketchError::ConvertError),
+        }
+    }
+
+    fn mut_bool_by_id(&mut self, id: u8) -> SketchResult<&mut bool> {
+        match id {
+            2 => Ok(&mut self.text_enabled),
+            3 => Ok(&mut self.spiral),
+            _ => Err(SketchError::ConvertError),
+        }
     }
 }
