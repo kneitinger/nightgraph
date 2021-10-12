@@ -12,7 +12,7 @@ CRATE_NAME_SNAKE_CASE="${CRATE_NAME//-/_}" # for those who name crates with-keba
 export RUSTFLAGS=--cfg=web_sys_unstable_apis
 
 # Clear output from old stuff:
-rm -f docs/${CRATE_NAME_SNAKE_CASE}_bg.wasm
+rm -f docs/"${CRATE_NAME_SNAKE_CASE}"_bg.wasm
 
 echo "Building rust…"
 BUILD=release
@@ -25,6 +25,6 @@ wasm-bindgen "${TARGET_DIR}/wasm32-unknown-unknown/${BUILD}/${TARGET_NAME}" \
 
 # to get wasm-opt:  apt/brew/dnf install binaryen
 echo "Optimizing wasm…"
-wasm-opt docs/${CRATE_NAME_SNAKE_CASE}_bg.wasm -O2 --fast-math -o docs/${CRATE_NAME_SNAKE_CASE}_bg.wasm # add -g to get debug symbols
+wasm-opt docs/"${CRATE_NAME_SNAKE_CASE}"_bg.wasm -O2 --fast-math -o docs/"${CRATE_NAME_SNAKE_CASE}"_bg.wasm # add -g to get debug symbols
 
 echo "Finished: docs/${CRATE_NAME_SNAKE_CASE}.wasm"
