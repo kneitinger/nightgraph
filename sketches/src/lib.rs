@@ -1,7 +1,4 @@
-pub(crate) use clap::Clap;
-use clap::Subcommand;
 pub(crate) use nightgraphics::prelude::*;
-pub(crate) use serde::{Deserialize, Serialize};
 
 mod blossom;
 use blossom::*;
@@ -22,7 +19,11 @@ impl From<GeomError> for SketchError {
     }
 }
 
-#[derive(Subcommand, Serialize, Deserialize)]
+#[cfg_attr(feature = "cli", derive(clap::Subcommand))]
+#[cfg_attr(
+    feature = "serde_support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
 pub enum SketchList {
     Blossom(Blossom),
 }

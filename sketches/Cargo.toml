@@ -9,5 +9,10 @@ edition = "2018"
 [dependencies]
 nightgraphics = { path = "../graphics" }
 nightgraph-derive = { path = "../nightgraph-derive" }
-clap = "3.0.0-beta.4"
-serde = {version = "1.0", features = ["derive"] }
+clap = { version = "3.0.0-beta.4", optional = true }
+serde = {version = "1.0", features = ["derive"], optional = true }
+
+[features]
+default = []
+cli = ["clap"]
+serde_support = ["serde"]

@@ -3,7 +3,7 @@ name = "nightgraphics-ui"
 authors = ["Kyle Kneitinger <kyle@kneit.in>"]
 version = "0.1.0"
 edition = "2018"
-description = "A UI and runner for nightgraphics sketches"
+description = "A UI and runner for nightgraph sketches"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -16,4 +16,4 @@ serde = {version = "1.0", features = ["derive"] }
 
 [features]
 default = ["persistence"]
-persistence = ["eframe/persistence"]
+persistence = ["eframe/persistence", "sketches/serde_support"]
