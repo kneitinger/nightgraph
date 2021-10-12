@@ -4,7 +4,7 @@ use eframe::{
     epi,
 };
 use nightgraphics::render::EguiRenderer;
-use sketches::{Param, ParamKind, SketchList};
+use sketches::{ParamKind, ParamMetadata, SketchList};
 
 mod drawing;
 use drawing::Drawing;
@@ -24,13 +24,13 @@ pub struct NightgraphApp {
     // TODO: previous sessions mode using persistence.
     // saves the sketch struct values, but not the rendered shapes
     #[serde(skip)]
-    params: Vec<Param>,
+    params: Vec<ParamMetadata>,
 }
 
 impl Default for NightgraphApp {
     fn default() -> Self {
         let sketch = SketchList::default();
-        let params = sketch.params();
+        let params = sketch.param_metadata();
         Self {
             sketch,
             drawing: Drawing::default(),
@@ -45,7 +45,7 @@ impl NightgraphApp {
         for param in &self.params {
             let sketch = &mut self.sketch;
             let drawing = &mut self.drawing;
-            let id = param.id();
+            let id = param.id;
             match param.kind {
                 ParamKind::Int => {}
                 ParamKind::Float => {}

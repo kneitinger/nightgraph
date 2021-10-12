@@ -3,6 +3,10 @@ use std::f64::consts::{E, PI, TAU};
 
 /// Sketch description test string
 #[derive(Debug, Deserialize, Clone, Serialize, Clap)]
+#[cfg_attr(
+    feature = "serde_support",
+    derive(serde::Deserialize, serde::Serialize)
+)]
 pub struct Blossom {
     #[clap(short, long)]
     text_enabled: bool,
@@ -24,7 +28,7 @@ impl Default for Blossom {
         Self {
             text_enabled: false,
             spiral: false,
-            steps: 75,
+            rotational_steps: 75,
             levels: 65,
         }
     }
@@ -57,7 +61,7 @@ impl Sketch for Blossom {
             .build()
             .unwrap();
 
-        let steps = self.steps;
+        let steps = self.rotational_steps;
         let levels = self.levels;
         let th_delta = TAU / steps as f64;
         let mut points = vec![];

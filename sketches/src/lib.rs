@@ -1,3 +1,4 @@
+use core::ops::RangeInclusive;
 pub(crate) use nightgraphics::prelude::*;
 
 mod blossom;
@@ -43,31 +44,19 @@ pub enum ParamKind {
     Unsupported,
 }
 
-#[derive(Copy, Clone)]
-pub enum UiHint {
-    Slider,
+#[derive(Clone)]
+pub enum ParamRange {
+    Int(RangeInclusive<i64>),
+    Float(RangeInclusive<f64>),
 }
 
-#[derive(Copy, Clone)]
-pub struct Param {
-    id: u8,
+#[derive(Clone)]
+pub struct ParamMetadata {
+    pub id: u64,
     pub name: &'static str,
-    pub description: &'static str,
+    pub description: Option<&'static str>,
     pub kind: ParamKind,
-    pub ui_hint: Option<UiHint>,
-}
-
-impl Param {
-    pub fn id(&self) -> u8 {
-        self.id
-    }
-    pub fn kind(&self) -> ParamKind {
-        self.kind
-    }
-}
-
-trait ParamCast {
-    fn to_param(kind: ParamKind);
+    pub range: Option<ParamRange>,
 }
 
 impl SketchList {
@@ -84,20 +73,20 @@ impl SketchList {
     pub fn exec(&self) -> SketchResult<Canvas> {
         self.inner_sketch().exec()
     }
-    pub fn params(&self) -> Vec<Param> {
-        self.inner_sketch().params()
+    pub fn param_metadata(&self) -> Vec<ParamMetadata> {
+        self.inner_sketch().param_metadata()
     }
-    pub fn mut_float_by_id(&mut self, id: u8) -> SketchResult<&mut f64> {
+    pub fn mut_float_by_id(&mut self, id: u64) -> SketchResult<&mut f64> {
         self.inner_sketch_mut().mut_float_by_id(id)
     }
-    pub fn mut_int_by_id(&mut self, id: u8) -> SketchResult<&mut i64> {
+    pub fn mut_int_by_id(&mut self, id: u64) -> SketchResult<&mut i64> {
         self.inner_sketch_mut().mut_int_by_id(id)
     }
-    pub fn mut_uint_by_id(&mut self, id: u8) -> SketchResult<&mut u64> {
+    pub fn mut_uint_by_id(&mut self, id: u64) -> SketchResult<&mut u64> {
         self.inner_sketch_mut().mut_uint_by_id(id)
     }
 
-    pub fn mut_bool_by_id(&mut self, id: u8) -> SketchResult<&mut bool> {
+    pub fn mut_bool_by_id(&mut self, id: u64) -> SketchResult<&mut bool> {
         self.inner_sketch_mut().mut_bool_by_id(id)
     }
 }
@@ -107,15 +96,15 @@ trait Sketch: SketchAccess {
 }
 
 trait SketchAccess {
-    fn params(&self) -> Vec<Param>;
-    fn mut_float_by_id(&mut self, id: u8) -> SketchResult<&mut f64>;
-    fn mut_int_by_id(&mut self, id: u8) -> SketchResult<&mut i64>;
-    fn mut_uint_by_id(&mut self, id: u8) -> SketchResult<&mut u64>;
-    fn mut_bool_by_id(&mut self, id: u8) -> SketchResult<&mut bool>;
+    fn param_metadata(&self) -> Vec<ParamMetadata>;
+    fn mut_float_by_id(&mut self, id: u64) -> SketchResult<&mut f64>;
+    fn mut_int_by_id(&mut self, id: u64) -> SketchResult<&mut i64>;
+    fn mut_uint_by_id(&mut self, id: u64) -> SketchResult<&mut u64>;
+    fn mut_bool_by_id(&mut self, id: u64) -> SketchResult<&mut bool>;
 
-    fn get_kind_by_id(&mut self, id: u8) -> SketchResult<ParamKind> {
+    fn get_kind_by_id(&mut self, id: u64) -> SketchResult<ParamKind> {
         Ok(self
-            .params()
+            .param_metadata()
             .iter()
             .find(|p| p.id == id)
             .ok_or_else(|| SketchError::ParamError(format!("Invalid id: {}", id)))?
