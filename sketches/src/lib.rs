@@ -113,9 +113,4 @@ trait SketchAccess {
 }
 
 #[cfg(test)]
-mod tests {
-    #[test]
-    fn test_param_set_types() {
-        assert_eq!(2 + 2, 4);
-    }
-}
+mod tests {}
