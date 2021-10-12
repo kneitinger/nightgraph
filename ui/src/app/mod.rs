@@ -79,9 +79,31 @@ impl NightgraphApp {
     fn param_grid(&mut self, ui: &mut egui::Ui) {
         egui::Grid::new("params_grid")
             .num_columns(2)
-            .spacing([40.0, 4.0])
+            .spacing([55.0, 4.0])
             .striped(false)
             .show(ui, |ui| self.param_grid_contents(ui));
+    }
+
+    fn view_settings_grid(&mut self, ui: &mut egui::Ui) {
+        egui::Grid::new("view_settings_grid")
+            .num_columns(2)
+            .striped(false)
+            .show(ui, |ui| {
+                ui.label("Draw debug geometry");
+                ui.checkbox(&mut self.drawing.draw_debug_geom, "");
+                ui.end_row();
+                ui.label("Draw page outline");
+                ui.checkbox(&mut self.drawing.draw_page_outline, "");
+                ui.end_row();
+
+                ui.label("Page color");
+                egui::color_picker::color_edit_button_srgba(
+                    ui,
+                    &mut self.drawing.bg_color,
+                    egui::color_picker::Alpha::OnlyBlend,
+                );
+                ui.end_row();
+            });
     }
 }
 
@@ -148,13 +170,7 @@ impl epi::App for NightgraphApp {
                 ui.add(egui::Separator::default().spacing(15.));
 
                 ui.collapsing("View Settings", |ui| {
-                    ui.checkbox(&mut self.drawing.draw_debug_geom, "Draw debug geometry");
-                    ui.checkbox(&mut self.drawing.draw_page_outline, "Draw page outline");
-                    egui::color_picker::color_edit_button_srgba(
-                        ui,
-                        &mut self.drawing.bg_color,
-                        egui::color_picker::Alpha::OnlyBlend,
-                    );
+                    self.view_settings_grid(ui);
                 });
                 self.param_grid(ui);
             });
