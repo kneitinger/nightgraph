@@ -4,7 +4,7 @@ use eframe::{
     epi,
 };
 use nightgraphics::render::EguiRenderer;
-use nightsketch::{ParamKind, ParamMetadata, SketchList};
+use nightsketch::{ParamKind, ParamMetadata, ParamRange, SketchList};
 
 mod drawing;
 use drawing::Drawing;
@@ -47,14 +47,44 @@ impl NightgraphApp {
             let drawing = &mut self.drawing;
             let id = param.id;
             match param.kind {
-                ParamKind::Int => {}
-                ParamKind::Float => {}
+                ParamKind::Int => {
+                    ui.label(param.name);
+                    let val = sketch.mut_int_by_id(id).unwrap();
+                    let init = *val;
+                    let dragval = if let Some(ParamRange::Int(range)) = &param.range {
+                        egui::widgets::DragValue::new(val).clamp_range(range.to_owned())
+                    } else {
+                        egui::widgets::DragValue::new(val)
+                    };
+                    ui.add(dragval);
+                    if *val != init {
+                        drawing.rerender(sketch.exec().unwrap().render_egui());
+                    }
+                }
+                ParamKind::Float => {
+                    ui.label(param.name);
+                    let val = sketch.mut_float_by_id(id).unwrap();
+                    let init = *val;
+                    let dragval = if let Some(ParamRange::Float(range)) = &param.range {
+                        egui::widgets::DragValue::new(val).clamp_range(range.to_owned())
+                    } else {
+                        egui::widgets::DragValue::new(val)
+                    };
+                    ui.add(dragval);
+                    if (*val - init).abs() > f64::EPSILON {
+                        drawing.rerender(sketch.exec().unwrap().render_egui());
+                    }
+                }
                 ParamKind::UInt => {
-                    // Number box by default, slider,etc. with hint
                     ui.label(param.name);
                     let val = sketch.mut_uint_by_id(id).unwrap();
                     let init = *val;
-                    ui.add(egui::widgets::DragValue::new(val));
+                    let dragval = if let Some(ParamRange::Int(range)) = &param.range {
+                        egui::widgets::DragValue::new(val).clamp_range(range.to_owned())
+                    } else {
+                        egui::widgets::DragValue::new(val)
+                    };
+                    ui.add(dragval);
                     if *val != init {
                         drawing.rerender(sketch.exec().unwrap().render_egui());
                     }
@@ -70,7 +100,7 @@ impl NightgraphApp {
                         drawing.rerender(sketch.exec().unwrap().render_egui());
                     }
                 }
-                // Showing a label with param name and unsupported would by nice
+                // TODO: Showing a label with param name and unsupported would by nice
                 ParamKind::Unsupported => {}
             }
             ui.end_row();
