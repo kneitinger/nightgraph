@@ -3,7 +3,7 @@ use std::f64::consts::{E, PI, TAU};
 
 /// A series of lightly complex sine modulated rings around the center of the
 /// page with optional text cutout.
-#[nightgraph_derive::sketch]
+#[sketch]
 pub struct Blossom {
     /// The number of rings to draw
     #[param(default = 35, range=2..=60)]

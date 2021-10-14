@@ -1,10 +1,10 @@
 [workspace]
 
 members = [
+    "cli",
     "graphics",
-    "ngfx",
-    "sketches",
-    "nightgraph-derive",
+    "sketch",
+    "sketch_derive",
     "ui",
 ]
 

@@ -1,5 +1,5 @@
 [package]
-name = "nightgraphics-ui"
+name = "nightgraph-ui"
 authors = ["Kyle Kneitinger <kyle@kneit.in>"]
 version = "0.1.0"
 edition = "2018"
@@ -11,9 +11,9 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 eframe = "0.14"
 nightgraphics = { path = "../graphics" }
-sketches = { path = "../sketches" }
+nightsketch = { path = "../sketch" }
 serde = {version = "1.0", features = ["derive"] }
 
 [features]
 default = ["persistence"]
-persistence = ["eframe/persistence", "sketches/serde_support"]
+persistence = ["eframe/persistence", "nightsketch/serde_support"]

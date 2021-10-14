@@ -1,16 +1,16 @@
 [package]
-name = "sketches"
+name = "nightsketch"
 authors = ["Kyle Kneitinger <kyle@kneit.in>"]
 version = "0.1.0"
 edition = "2018"
 
 [dependencies]
 nightgraphics = { path = "../graphics" }
-nightgraph-derive = { path = "../nightgraph-derive" }
+nightsketch_derive = { path = "../sketch_derive" }
 clap = { version = "3.0.0-beta.4", optional = true }
 serde = {version = "1.0", features = ["derive"], optional = true }
 
 [features]
 default = []
-cli = ["clap", "nightgraph-derive/cli"]
-serde_support = ["serde", "nightgraph-derive/serde_support"]
+cli = ["clap", "nightsketch_derive/cli"]
+serde_support = ["serde", "nightsketch_derive/serde_support"]

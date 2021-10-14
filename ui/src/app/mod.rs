@@ -4,7 +4,7 @@ use eframe::{
     epi,
 };
 use nightgraphics::render::EguiRenderer;
-use sketches::{ParamKind, ParamMetadata, SketchList};
+use nightsketch::{ParamKind, ParamMetadata, SketchList};
 
 mod drawing;
 use drawing::Drawing;

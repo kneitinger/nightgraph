@@ -1,5 +1,6 @@
 use core::ops::RangeInclusive;
 pub(crate) use nightgraphics::prelude::*;
+pub(crate) use nightsketch_derive::sketch;
 
 mod blossom;
 use blossom::*;

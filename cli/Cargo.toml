@@ -1,5 +1,5 @@
 [package]
-name = "ngfx"
+name = "nightgraph-cli"
 authors = ["Kyle Kneitinger <kyle@kneit.in>"]
 version = "0.1.0"
 edition = "2018"
@@ -9,7 +9,7 @@ description = "A runner for nightgraph sketches"
 
 [dependencies]
 nightgraphics = { path = "../graphics" }
-sketches = { path = "../sketches", features = ["cli"] }
+nightsketch = { path = "../sketch", features = ["cli"] }
 clap = "3.0.0-beta.4"
 serde = {version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0"}

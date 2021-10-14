@@ -4,8 +4,8 @@ use eframe::{
 };
 
 use nightgraphics::render::EguiRenderer;
+use nightsketch::SketchList;
 use serde::{Deserialize, Serialize};
-use sketches::SketchList;
 
 #[derive(Deserialize, Serialize)]
 pub struct Drawing {
