@@ -51,12 +51,23 @@ pub enum ParamRange {
     Float(RangeInclusive<f64>),
 }
 
+/// Information associated with a sketch parameter.
+///
+/// This metadata can be used to set sketch parameter values, generate controls
+/// in other crates, etc.
 #[derive(Clone)]
 pub struct ParamMetadata {
+    /// A unique id that can be used in the mut accessor funtions
     pub id: u64,
+    /// The name of the parameter
     pub name: &'static str,
+    /// A description of the parameter
     pub description: Option<&'static str>,
+    /// An enum representing the supported kind of parameter; or if it is
+    /// unsupported
     pub kind: ParamKind,
+    /// The range of appropriate values for this parameter. Only meaningful
+    /// for numeric types
     pub range: Option<ParamRange>,
 }
 
