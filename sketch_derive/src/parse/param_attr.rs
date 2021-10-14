@@ -113,3 +113,60 @@ impl Parse for ParamAttr {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_all_attrs_set_correctly() {
+        let attrs: ParamAttrs = syn::parse_quote!(
+            /// TEST DOC
+            #[param(name = "NAME", description = "DESC", internal, default=20, range=2..=10)]
+        );
+
+        let lit_default: syn::Lit = syn::parse_quote!(20);
+        let lit_range: (syn::Lit, syn::Lit) = (syn::parse_quote!(2), syn::parse_quote!(10));
+
+        assert_eq!(attrs.name, Some("NAME".to_string()));
+        assert_eq!(attrs.desc, Some("DESC".to_string()));
+        assert!(attrs.internal);
+        assert_eq!(attrs.default, Some(lit_default));
+        assert_eq!(attrs.range, Some(lit_range));
+    }
+
+    #[test]
+    fn test_attr_defaults() {
+        let param: crate::parse::SketchParam = syn::parse_quote!(foo: u32);
+        let attrs = param.param_attrs;
+
+        assert_eq!(attrs.name, None);
+        assert_eq!(attrs.desc, None);
+        assert!(!attrs.internal);
+        assert_eq!(attrs.default, None);
+        assert_eq!(attrs.range, None);
+    }
+
+    #[test]
+    fn test_doc_as_description() {
+        let attrs: ParamAttrs = syn::parse_quote!(
+            /// DOC-DESC-1
+            #[param(name = "NAME")]
+        );
+
+        assert_eq!(attrs.desc, Some("DOC-DESC-1".to_string()));
+
+        let attrs: ParamAttrs = syn::parse_quote!(
+            /// DOC-DESC-2
+        );
+
+        assert_eq!(attrs.desc, Some("DOC-DESC-2".to_string()));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_invalid_param_attr() {
+        let _attrs: ParamAttrs = syn::parse_quote!(
+            #[param(wrong)]
+        );
+    }
+}
