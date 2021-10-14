@@ -1,37 +1,25 @@
 use super::*;
 use std::f64::consts::{E, PI, TAU};
 
-/// Sketch description test string
-#[derive(Debug, Deserialize, Clone, Serialize, Clap)]
-#[cfg_attr(
-    feature = "serde_support",
-    derive(serde::Deserialize, serde::Serialize)
-)]
+/// A series of lightly complex sine modulated rings around the center of the
+/// page with optional text cutout.
+#[nightgraph_derive::sketch]
 pub struct Blossom {
-    #[clap(short, long)]
-    text_enabled: bool,
-
-    #[clap(short, long)]
-    spiral: bool,
-    // it would be cool to have named radio buttons via raw enums,
-    // or also to be able to name the true and false vals of bool
-    #[clap(short, long, default_value = "10")]
-    steps: u64,
-
-    #[clap(short, long, default_value = "65")]
+    /// The number of rings to draw
+    #[param(default = 35, range=2..=60)]
     levels: u64,
-    // #[param(range=(1..=2))]
-}
 
-impl Default for Blossom {
-    fn default() -> Self {
-        Self {
-            text_enabled: false,
-            spiral: false,
-            rotational_steps: 75,
-            levels: 65,
-        }
-    }
+    /// The number of steps to sample the sine wave(s) at during a circular
+    /// sweep of a ring
+    #[param(default = 33, range=2..=50)]
+    rotational_steps: u64,
+
+    /// When set, the resulting bloom will be one single path, rotated LEVELS
+    /// amount of times, instead of distrete closed paths per LEVEL
+    spiral: bool,
+
+    /// Display overlaid text
+    display_text: bool,
 }
 
 fn exp_dec(lambda: f64, t: f64) -> f64 {
@@ -83,7 +71,7 @@ impl Sketch for Blossom {
             }
             if !self.spiral {
                 let poly = Poly::new_smooth(&points);
-                if self.text_enabled {
+                if self.display_text {
                     let diff = poly.difference(&text);
                     canvas.add(diff);
                 } else {
@@ -92,7 +80,7 @@ impl Sketch for Blossom {
             }
             if self.spiral {
                 let path = Path::from_points_smooth(&points);
-                if self.text_enabled {
+                if self.display_text {
                     let diff = path.difference(&text);
                     canvas.add(diff);
                 } else {
@@ -101,69 +89,10 @@ impl Sketch for Blossom {
             }
         }
 
-        if self.text_enabled {
+        if self.display_text {
             canvas.add(text);
         }
 
         Ok(canvas)
-    }
-}
-
-impl SketchAccess for Blossom {
-    fn params(&self) -> Vec<Param> {
-        vec![
-            Param {
-                id: 0,
-                name: "levels",
-                description: "foo",
-                kind: ParamKind::UInt,
-                ui_hint: None,
-            },
-            Param {
-                id: 1,
-                name: "steps",
-                description: "foo",
-                kind: ParamKind::UInt,
-                ui_hint: None,
-            },
-            Param {
-                id: 2,
-                name: "text_enabled",
-                description: "foo",
-                kind: ParamKind::Bool,
-                ui_hint: None,
-            },
-            Param {
-                id: 3,
-                name: "spiral",
-                description: "foo",
-                kind: ParamKind::Bool,
-                ui_hint: None,
-            },
-        ]
-    }
-
-    fn mut_float_by_id(&mut self, _id: u8) -> SketchResult<&mut f64> {
-        Err(SketchError::ConvertError)
-    }
-
-    fn mut_int_by_id(&mut self, _id: u8) -> SketchResult<&mut i64> {
-        Err(SketchError::ConvertError)
-    }
-
-    fn mut_uint_by_id(&mut self, id: u8) -> SketchResult<&mut u64> {
-        match id {
-            0 => Ok(&mut self.levels),
-            1 => Ok(&mut self.steps),
-            _ => Err(SketchError::ConvertError),
-        }
-    }
-
-    fn mut_bool_by_id(&mut self, id: u8) -> SketchResult<&mut bool> {
-        match id {
-            2 => Ok(&mut self.text_enabled),
-            3 => Ok(&mut self.spiral),
-            _ => Err(SketchError::ConvertError),
-        }
     }
 }

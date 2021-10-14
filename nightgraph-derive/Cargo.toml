@@ -7,6 +7,22 @@ edition = "2018"
 proc-macro = true
 
 [dependencies]
-syn = { version = "1.0" }
+# extra-traits is for debug.  Can likely be removed after
+# initial development/prototyping
+syn = { version = "1.0", features = ["full", "extra-traits"] }
 quote = "1.0"
 proc-macro2 = "1.0"
+proc-macro-error = "1.0"
+heck = "0.3"
+
+# This crate's `#[sketch]` macro conditionally inserts attributes for clap and
+# serde into the target sketch's struct.
+# Inserting `#[cfg_attr(feature=<sketch-crate-feature>, ...)]` doesn't function
+# correctly, so RLS and cargo-expand see unconsumed attributes. It would be
+# preferable to find a way to use the sketch's crate's features and cfg_attr,
+# but until that's figured out, propagating features into this crate and using
+# them in `if cfg!(feature = "...")` expressions here works decently.
+[features]
+default=[]
+cli=[]
+serde_support=[]

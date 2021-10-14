@@ -1,25 +1,28 @@
-use proc_macro::{self, TokenStream};
+use proc_macro::TokenStream;
+use proc_macro_error::proc_macro_error;
 use quote::quote;
-use syn::*;
+use syn::parse_macro_input;
 
-fn err<T: quote::ToTokens>(tokens: T, message: &str) -> TokenStream {
-    Error::new_spanned(tokens, message)
-        .to_compile_error()
-        .into()
-}
+mod parse;
+use parse::*;
+mod codegen;
+use codegen::*;
 
+#[proc_macro_error]
 #[proc_macro_attribute]
 pub fn sketch(_attr: TokenStream, input: TokenStream) -> TokenStream {
-    let item: syn::Item = parse_macro_input!(input);
+    let sketch_struct: SketchStruct = parse_macro_input!(input);
+    let name = &sketch_struct.name;
+    let params = &sketch_struct.params;
 
-    let sketch_struct = if let Item::Struct(ref struct_item) = item {
-        struct_item
-    } else {
-        return err(&item, "#[sketch] can only be applied to structs");
-    };
+    let struct_tokens = quote!( #sketch_struct  );
+    let impl_sketchaccess = impl_sketchaccess_tokens(name, params);
+    let impl_default = impl_default_tokens(name, params);
 
-    let _sketch_name = &sketch_struct.ident;
-
-    let output = quote! { #[derive(Sketch)] #item };
-    output.into()
+    quote! (
+        #struct_tokens
+        #impl_default
+        #impl_sketchaccess
+    )
+    .into()
 }

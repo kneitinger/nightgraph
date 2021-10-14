@@ -4,8 +4,6 @@ authors = ["Kyle Kneitinger <kyle@kneit.in>"]
 version = "0.1.0"
 edition = "2018"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
 nightgraphics = { path = "../graphics" }
 nightgraph-derive = { path = "../nightgraph-derive" }
@@ -14,5 +12,5 @@ serde = {version = "1.0", features = ["derive"], optional = true }
 
 [features]
 default = []
-cli = ["clap"]
-serde_support = ["serde"]
+cli = ["clap", "nightgraph-derive/cli"]
+serde_support = ["serde", "nightgraph-derive/serde_support"]
