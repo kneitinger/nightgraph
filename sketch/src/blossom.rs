@@ -78,14 +78,14 @@ impl Sketch for Blossom {
                     canvas.add(poly);
                 }
             }
-            if self.spiral {
-                let path = Path::from_points_smooth(&points);
-                if self.display_text {
-                    let diff = path.difference(&text);
-                    canvas.add(diff);
-                } else {
-                    canvas.add(path);
-                }
+        }
+        if self.spiral {
+            let path = Path::from_points_smooth(&points);
+            if self.display_text {
+                let diff = path.difference(&text);
+                canvas.add(diff);
+            } else {
+                canvas.add(path);
             }
         }
 
