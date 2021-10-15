@@ -73,10 +73,7 @@ impl SketchParam {
     fn generate_skip_attr_tokens(&self) -> Option<TokenStream> {
         let clap_skip = tokens_or_none(cfg!(feature = "cli"), quote! { #[clap(skip)] });
 
-        let serde_skip = tokens_or_none(
-            cfg!(feature = "serde_support"),
-            quote! { #[serde(skip_serializing)] },
-        );
+        let serde_skip = tokens_or_none(cfg!(feature = "serde_support"), quote! { #[serde(skip)] });
 
         tokens_or_none(self.param_attrs.internal, quote! {#clap_skip #serde_skip})
     }
