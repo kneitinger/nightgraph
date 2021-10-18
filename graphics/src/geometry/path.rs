@@ -56,23 +56,24 @@ impl PathBuilder {
     }
 
     fn bez_from_points_smooth(points: &[Point], closed: bool) -> GeomResult<BezPath> {
-        if points.len() < 2 {
-            return Err(GeomError::path_error("path requires at least 2 points"));
-        } else if points.len() == 2 {
-            return Self::bez_from_points(points, closed);
+        use std::cmp::Ordering;
+        match points.len().cmp(&2) {
+            Ordering::Less => Err(GeomError::path_error("path requires at least 2 points")),
+            Ordering::Equal => Self::bez_from_points(points, closed),
+            Ordering::Greater => {
+                let xs: Vec<f64> = points.iter().map(|p| p.x).collect();
+                let ys: Vec<f64> = points.iter().map(|p| p.y).collect();
+                let (cp1_xs, cp2_xs) = smoothing_control_values(&xs);
+                let (cp1_ys, cp2_ys) = smoothing_control_values(&ys);
+                let mut cmds = vec![PathEl::MoveTo(points[0])];
+                for i in 1..points.len() {
+                    let c1 = point(cp1_xs[i - 1], cp1_ys[i - 1]);
+                    let c2 = point(cp2_xs[i - 1], cp2_ys[i - 1]);
+                    cmds.push(PathEl::CurveTo(c1, c2, points[i]));
+                }
+                Ok(BezPath::from_vec(cmds))
+            }
         }
-
-        let xs: Vec<f64> = points.iter().map(|p| p.x).collect();
-        let ys: Vec<f64> = points.iter().map(|p| p.y).collect();
-        let (cp1_xs, cp2_xs) = smoothing_control_values(&xs);
-        let (cp1_ys, cp2_ys) = smoothing_control_values(&ys);
-        let mut cmds = vec![PathEl::MoveTo(points[0])];
-        for i in 1..points.len() {
-            let c1 = point(cp1_xs[i - 1], cp1_ys[i - 1]);
-            let c2 = point(cp2_xs[i - 1], cp2_ys[i - 1]);
-            cmds.push(PathEl::CurveTo(c1, c2, points[i]));
-        }
-        Ok(BezPath::from_vec(cmds))
     }
 
     fn bez_from_points(points: &[Point], closed: bool) -> GeomResult<BezPath> {
@@ -125,6 +126,12 @@ impl PathBuilder {
             inner,
             bounding_box,
         })
+    }
+}
+
+impl Default for PathBuilder {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -390,8 +397,8 @@ mod tests {
         let built_path = PathBuilder::new().points(&points).closed().build().unwrap();
         let built_path_no_close = PathBuilder::new().points(&points).build().unwrap();
 
-        assert_eq!(built_path.area(), 4.0);
-        assert_eq!(built_path.perimeter(), 8.0);
+        assert!((built_path.area() - 4.0).abs() < f64::EPSILON);
+        assert!((built_path.perimeter() - 8.0).abs() < f64::EPSILON);
         assert!(built_path.perimeter() > built_path_no_close.perimeter(),);
     }
 
