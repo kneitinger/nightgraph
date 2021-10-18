@@ -15,7 +15,7 @@ mod text;
 pub use circle::Circle;
 pub use error::*;
 pub use line::Line;
-pub use path::Path;
+pub use path::{Path, PathBuilder};
 pub use poly::Poly;
 pub use text::TextBuilder;
 

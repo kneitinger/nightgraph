@@ -2,14 +2,144 @@ use super::error::*;
 use super::*;
 use kurbo::{BezPath, Shape as KurboShape};
 
+enum PathBuildMode {
+    Points,
+    PointsSmooth,
+    Cmds,
+    Unknown,
+}
+
+pub struct PathBuilder {
+    points: Vec<Point>,
+    closed: bool,
+    cmds: Vec<PathEl>,
+    precompute: bool,
+    mode: PathBuildMode,
+}
+
+impl PathBuilder {
+    pub fn new() -> PathBuilder {
+        Self {
+            points: vec![],
+            closed: false,
+            cmds: vec![],
+            precompute: false,
+            mode: PathBuildMode::Unknown,
+        }
+    }
+
+    pub fn closed(&mut self) -> &mut Self {
+        self.closed = true;
+        self
+    }
+
+    pub fn precompute(&mut self) -> &mut Self {
+        self.precompute = true;
+        self
+    }
+
+    pub fn points(&mut self, points: &[Point]) -> &mut Self {
+        self.points = Vec::from(points);
+        self.mode = PathBuildMode::Points;
+        self
+    }
+
+    pub fn commands(&mut self, cmds: &[PathEl]) -> &mut Self {
+        self.cmds = Vec::from(cmds);
+        self.mode = PathBuildMode::Cmds;
+        self
+    }
+
+    pub fn smooth(&mut self) -> &mut Self {
+        self.mode = PathBuildMode::PointsSmooth;
+        self
+    }
+
+    fn bez_from_points_smooth(points: &[Point], closed: bool) -> GeomResult<BezPath> {
+        if points.len() < 2 {
+            return Err(GeomError::path_error("path requires at least 2 points"));
+        } else if points.len() == 2 {
+            return Self::bez_from_points(points, closed);
+        }
+
+        let xs: Vec<f64> = points.iter().map(|p| p.x).collect();
+        let ys: Vec<f64> = points.iter().map(|p| p.y).collect();
+        let (cp1_xs, cp2_xs) = smoothing_control_values(&xs);
+        let (cp1_ys, cp2_ys) = smoothing_control_values(&ys);
+        let mut cmds = vec![PathEl::MoveTo(points[0])];
+        for i in 1..points.len() {
+            let c1 = point(cp1_xs[i - 1], cp1_ys[i - 1]);
+            let c2 = point(cp2_xs[i - 1], cp2_ys[i - 1]);
+            cmds.push(PathEl::CurveTo(c1, c2, points[i]));
+        }
+        Ok(BezPath::from_vec(cmds))
+    }
+
+    fn bez_from_points(points: &[Point], closed: bool) -> GeomResult<BezPath> {
+        if points.len() < 2 {
+            return Err(GeomError::path_error("path requires at least 2 points"));
+        }
+        let mut cmds = vec![PathEl::MoveTo(points[0])];
+        for &p in points.iter().skip(1) {
+            cmds.push(PathEl::LineTo(p));
+        }
+        if closed {
+            cmds.push(PathEl::ClosePath);
+        }
+
+        Ok(BezPath::from_vec(cmds))
+    }
+
+    fn bez_from_commands(cmds: &[PathEl], closed: bool) -> GeomResult<BezPath> {
+        match cmds {
+            [PathEl::MoveTo(_), _, .., PathEl::ClosePath] => Ok(BezPath::from_vec(Vec::from(cmds))),
+            [PathEl::MoveTo(_), _, ..] => {
+                if closed {
+                    Ok(BezPath::from_vec([cmds, &[PathEl::ClosePath]].concat()))
+                } else {
+                    Ok(BezPath::from_vec(Vec::from(cmds)))
+                }
+            }
+            [_, ..] => Err(GeomError::path_error(
+                "paths must start with a MoveTo command",
+            )),
+            _ => Err(GeomError::path_error("path requires at least 2 commands")),
+        }
+    }
+
+    pub fn build(&self) -> GeomResult<Path> {
+        let inner = match self.mode {
+            PathBuildMode::Cmds => Self::bez_from_commands(&self.cmds, self.closed),
+            PathBuildMode::Points => Self::bez_from_points(&self.points, self.closed),
+            PathBuildMode::PointsSmooth => Self::bez_from_points_smooth(&self.points, self.closed),
+            PathBuildMode::Unknown => GeomResult::Err(GeomError::path_error("TODO: fill me in")),
+        }?;
+
+        let bounding_box = if self.precompute {
+            Some(inner.bounding_box())
+        } else {
+            None
+        };
+
+        Ok(Path {
+            inner,
+            bounding_box,
+        })
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Path {
     inner: BezPath,
+    bounding_box: Option<kurbo::Rect>,
 }
 
 impl From<BezPath> for Path {
     fn from(bez_path: BezPath) -> Self {
-        Self { inner: bez_path }
+        Self {
+            inner: bez_path,
+            bounding_box: None,
+        }
     }
 }
 
@@ -18,7 +148,10 @@ impl Path {
         let mut inner = BezPath::new();
         inner.move_to(origin);
         inner.push(cmd);
-        Self { inner }
+        Self {
+            inner,
+            bounding_box: None,
+        }
     }
 
     pub fn from_points(points: &[Point]) -> Self {
@@ -34,6 +167,7 @@ impl Path {
         match commands {
             [PathEl::MoveTo(_), _, ..] => Ok(Self {
                 inner: BezPath::from_vec(Vec::from(commands)),
+                bounding_box: None,
             }),
             [_, ..] => Err(GeomError::path_error(
                 "paths must start with a MoveTo command",
@@ -157,6 +291,7 @@ impl Path {
         let ts = kurbo::TranslateScale::new(translation, 1.0);
         Self {
             inner: ts * self.inner.clone(),
+            bounding_box: self.bounding_box,
         }
     }
 }
@@ -175,7 +310,10 @@ impl Shaped for Path {
         self.inner.perimeter(DEFAULT_ACCURACY)
     }
     fn bounding_box(&self) -> kurbo::Rect {
-        self.inner.bounding_box()
+        match self.bounding_box {
+            Some(bb) => bb,
+            None => self.inner.bounding_box(),
+        }
     }
     fn contains(&self, p: Point) -> bool {
         self.inner.contains(p)
@@ -240,4 +378,34 @@ fn smoothing_control_values(values: &[f64]) -> (Vec<f64>, Vec<f64>) {
     p2[n - 1] = 0.5 * (values[n] + p1[n - 1]);
 
     (p1, p2)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::geometry::point;
+    #[test]
+    fn path_builder_closed() {
+        let points = vec![point(0, 0), point(2, 0), point(2, 2), point(0, 2)];
+        let built_path = PathBuilder::new().points(&points).closed().build().unwrap();
+        let built_path_no_close = PathBuilder::new().points(&points).build().unwrap();
+
+        assert_eq!(built_path.area(), 4.0);
+        assert_eq!(built_path.perimeter(), 8.0);
+        assert!(built_path.perimeter() > built_path_no_close.perimeter(),);
+    }
+
+    #[test]
+    fn path_builder_precompute() {
+        let points = vec![point(0, 0), point(2, 0), point(2, 2), point(0, 2)];
+        let built_path = PathBuilder::new()
+            .points(&points)
+            .precompute()
+            .build()
+            .unwrap();
+        let built_path_no_precompute = PathBuilder::new().points(&points).build().unwrap();
+
+        assert!(matches!(built_path.bounding_box, Some(_bb)));
+        assert!(matches!(built_path_no_precompute.bounding_box, None));
+    }
 }
