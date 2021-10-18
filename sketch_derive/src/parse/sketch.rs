@@ -66,7 +66,7 @@ impl ToTokens for SketchStruct {
         } = sketch_attrs;
 
         let clap_attrs = if cfg!(feature = "cli") {
-            Some(quote!(#[derive(clap::Clap)]))
+            Some(quote!(#[derive(clap::Parser)]))
         } else {
             None
         };

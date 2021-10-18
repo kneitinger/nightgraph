@@ -1,11 +1,10 @@
-use clap::{crate_authors, crate_description, crate_version, AppSettings, Clap};
+use clap::{crate_authors, crate_description, crate_version, Parser};
 use nightgraphics::render::SvgRenderer;
 use nightsketch::SketchList;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clap, Serialize, Deserialize)]
+#[derive(clap::Parser, Serialize, Deserialize)]
 #[clap(about= crate_description!(), version = crate_version!(), author = crate_authors!())]
-#[clap(setting = AppSettings::ColoredHelp)]
 struct Opts {
     #[clap(subcommand)]
     sketch: SketchList,

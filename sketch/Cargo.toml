@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 nightgraphics = { path = "../graphics" }
 nightsketch_derive = { path = "../sketch_derive" }
-clap = { version = "3.0.0-beta.4", optional = true }
+clap = { version = "3.0.0-beta.5", optional = true }
 serde = {version = "1.0", features = ["derive"], optional = true }
 
 [features]

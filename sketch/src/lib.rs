@@ -21,7 +21,7 @@ impl From<GeomError> for SketchError {
     }
 }
 
-#[cfg_attr(feature = "cli", derive(clap::Subcommand))]
+#[cfg_attr(feature = "cli", derive(clap::Parser))]
 #[cfg_attr(
     feature = "serde_support",
     derive(serde::Deserialize, serde::Serialize)
