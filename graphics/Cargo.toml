@@ -3,7 +3,7 @@ name = "nightgraphics"
 authors = ["Kyle Kneitinger <kyle@kneit.in>"]
 version = "0.1.0"
 edition = "2018"
-description = "Utilities for creating art"
+description = "An art-centric graphics library providing a convenient drawing API, geometric operations, and various export formats"
 license = "MIT"
 
 [dependencies]
