@@ -16,7 +16,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - run: sudo apt-get update && sudo apt-get install libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev
+    - name: Install egui dependencies
+      run: sudo apt-get update && sudo apt-get install libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev
     - name: Build
       run: cargo build --verbose
     - name: Run tests
