@@ -1,5 +1,13 @@
 # nightgraph
 A creative coding ecosystem in Rust (and WASM)
+![Artwork of human sitting, stylized similarly to contour lines or CP-1919/"Unknown Pleasures"](./img/sitting.png)
+
+### Crates
+- [nightgraphics](./graphics) 
+- [nightgraph-ui](./ui)
+- [nightgraph-cli](./cli)
+- [nightsketch](./sketch)
+- [nightsketch_derive](./sketch_derive)
 
 ### Credit & Licenses
 
