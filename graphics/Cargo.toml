@@ -1,9 +1,11 @@
 [package]
 name = "nightgraphics"
-version = "0.1.0"
 authors = ["Kyle Kneitinger <kyle@kneit.in>"]
+version = "0.1.0"
 edition = "2018"
 description = "Utilities for creating art"
+license = "MIT"
+license-file = "../LICENSE-MIT"
 
 [dependencies]
 svg = "0.10"

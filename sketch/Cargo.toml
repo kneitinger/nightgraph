@@ -3,6 +3,9 @@ name = "nightsketch"
 authors = ["Kyle Kneitinger <kyle@kneit.in>"]
 version = "0.1.0"
 edition = "2018"
+description = "A framework for making sketches with the nightgraphics crate"
+license = "MIT"
+license-file = "../LICENSE-MIT"
 
 [dependencies]
 nightgraphics = { path = "../graphics" }

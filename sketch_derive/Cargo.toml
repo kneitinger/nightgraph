@@ -1,7 +1,11 @@
 [package]
 name = "nightsketch_derive"
+authors = ["Kyle Kneitinger <kyle@kneit.in>"]
 version = "0.1.0"
 edition = "2018"
+description = "Attribute macros for nightsketch sketches"
+license = "MIT"
+license-file = "../LICENSE-MIT"
 
 [lib]
 proc-macro = true
