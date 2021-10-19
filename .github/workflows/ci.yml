@@ -18,7 +18,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install egui dependencies
       run: sudo apt-get update && sudo apt-get install libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev
-    - uses: actions/cache@v2
+    - name: Cargo cache
+      uses: actions/cache@v2
       with:
         path: |
           ~/.cargo/bin/
