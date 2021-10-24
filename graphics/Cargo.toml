@@ -9,7 +9,8 @@ license = "MIT"
 [dependencies]
 svg = "0.10"
 rusttype = "0.9"
-egui = "0.14"
+# egui's default features includes bundled fonts, which we do not need
+egui = { version = "0.15", default-features = false }
 kurbo = "~0.8.2"
 itertools = "0.10"
 

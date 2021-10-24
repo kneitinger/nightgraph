@@ -55,29 +55,19 @@ impl Drawing {
         self.shapes
             .iter()
             .map(|shape| match shape {
-                EguiShape::Circle {
-                    center,
-                    radius,
-                    fill: _,
-                    stroke,
-                } => EguiShape::circle_stroke(
-                    transformation * *center,
-                    radius * transformation.scale().x,
-                    *stroke,
+                EguiShape::Circle(circ) => EguiShape::circle_stroke(
+                    transformation * circ.center,
+                    circ.radius * transformation.scale().x,
+                    circ.stroke,
                 ),
                 EguiShape::LineSegment { points, stroke } => EguiShape::line_segment(
                     [transformation * points[0], transformation * points[1]],
                     *stroke,
                 ),
-                EguiShape::Rect {
-                    rect,
-                    corner_radius,
-                    fill: _,
-                    stroke,
-                } => EguiShape::rect_stroke(
-                    transformation.transform_rect(*rect),
-                    *corner_radius,
-                    *stroke,
+                EguiShape::Rect(rect) => EguiShape::rect_stroke(
+                    transformation.transform_rect(rect.rect),
+                    rect.corner_radius,
+                    rect.stroke,
                 ),
                 _ => EguiShape::Noop,
             })
@@ -92,7 +82,7 @@ impl Drawing {
             ));
         }
         let (response, painter) = ui.allocate_painter(
-            ui.available_size_before_wrap_finite(),
+            ui.available_size_before_wrap(),
             egui::Sense::hover().union(egui::Sense::drag()),
         );
 
