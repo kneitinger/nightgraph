@@ -158,20 +158,38 @@ impl epi::App for NightgraphApp {
             "Jost*".to_owned(),
             std::borrow::Cow::Borrowed(include_bytes!("../../assets/Jost-400-Book.otf")),
         );
+        fonts.font_data.insert(
+            "Monofur".to_owned(),
+            std::borrow::Cow::Borrowed(include_bytes!("../../assets/Monofur_Regular.ttf")),
+        );
 
-        // Place font at the hightest priority for proportional
+        // Place prop font at the highest priority for proportional
         fonts
             .fonts_for_family
             .get_mut(&FontFamily::Proportional)
             .unwrap()
             .insert(0, "Jost*".to_owned());
 
-        // Place font at the lowest priority for monospace
+        // Place prop font at the lowest priority for monospace
         fonts
             .fonts_for_family
             .get_mut(&FontFamily::Monospace)
             .unwrap()
             .push("Jost*".to_owned());
+
+        // Place mono font at the lowest priority for proportional
+        fonts
+            .fonts_for_family
+            .get_mut(&FontFamily::Proportional)
+            .unwrap()
+            .push("Monofur".to_owned());
+
+        // Place mono font at the highest priority for monospace
+        fonts
+            .fonts_for_family
+            .get_mut(&FontFamily::Monospace)
+            .unwrap()
+            .insert(0, "Monofur".to_owned());
 
         ctx.set_fonts(fonts);
 
