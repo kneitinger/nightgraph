@@ -4,7 +4,7 @@ use eframe::{
     epi,
 };
 use nightgraphics::render::EguiRenderer;
-use nightsketch::{ParamKind, ParamMetadata, ParamRange, SketchList};
+use nightsketch::{ParamKind, ParamMetadata, ParamRange, Sketch, Sketches};
 
 mod drawing;
 use drawing::Drawing;
@@ -17,9 +17,13 @@ pub struct NightgraphApp {
     #[serde(skip)]
     drawing: Drawing,
 
-    sketch: SketchList,
+    #[serde(skip)]
+    sketch: Box<dyn Sketch>,
 
     ui_scale: Option<f32>,
+
+    #[serde(skip)]
+    sketches: Sketches,
 
     // TODO: previous sessions mode using persistence.
     // saves the sketch struct values, but not the rendered shapes
@@ -29,9 +33,11 @@ pub struct NightgraphApp {
 
 impl Default for NightgraphApp {
     fn default() -> Self {
-        let sketch = SketchList::default();
+        let sketches = Sketches::default();
+        let sketch = sketches.sketch();
         let params = sketch.param_metadata();
         Self {
+            sketches,
             sketch,
             drawing: Drawing::default(),
             params,
@@ -220,6 +226,14 @@ impl epi::App for NightgraphApp {
                 ui.collapsing("View Settings", |ui| {
                     self.view_settings_grid(ui);
                 });
+
+                let current_sketch = self.sketches;
+                ui.radio_value(&mut self.sketches, Sketches::Blossom, "Blossom");
+                ui.radio_value(&mut self.sketches, Sketches::Doop, "Doop");
+                if current_sketch != self.sketches {
+                    self.sketch = self.sketches.sketch();
+                    self.params = self.sketch.param_metadata();
+                }
                 self.param_grid(ui);
             });
 

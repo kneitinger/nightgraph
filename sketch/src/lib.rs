@@ -1,9 +1,9 @@
 use core::ops::RangeInclusive;
 pub(crate) use nightgraphics::prelude::*;
-pub(crate) use nightsketch_derive::sketch;
+pub(crate) use nightsketch_derive::{sketch, sketchlist};
 
 mod blossom;
-use blossom::*;
+mod doop;
 
 pub type SketchResult<T> = Result<T, SketchError>;
 
@@ -21,18 +21,70 @@ impl From<GeomError> for SketchError {
     }
 }
 
+//#[sketchlist]
+pub mod sketchlist {
+    use crate::blossom::Blossom;
+    use crate::doop::Doop;
+}
+
 #[cfg_attr(feature = "cli", derive(clap::Parser))]
 #[cfg_attr(
     feature = "serde_support",
     derive(serde::Deserialize, serde::Serialize)
 )]
 pub enum SketchList {
-    Blossom(Blossom),
+    Blossom(blossom::Blossom),
 }
 
 impl Default for SketchList {
     fn default() -> Self {
-        Self::Blossom(Blossom::default())
+        Self::Blossom(blossom::Blossom::default())
+    }
+}
+
+pub struct SketchMetadata {
+    name: &'static str,
+    desc: &'static str,
+}
+
+#[derive(PartialEq, Clone, Copy)]
+pub enum Sketches {
+    Blossom,
+    Doop,
+}
+impl Default for Sketches {
+    fn default() -> Self {
+        Self::Blossom
+    }
+}
+
+impl Sketches {
+    pub fn list() -> Vec<SketchMetadata> {
+        vec![
+            SketchMetadata {
+                name: blossom::NAME,
+                desc: blossom::DESC,
+            },
+            SketchMetadata {
+                name: doop::NAME,
+                desc: doop::DESC,
+            },
+        ]
+    }
+
+    pub fn sketch_from_name(name: &str) -> SketchResult<Box<dyn Sketch>> {
+        match name {
+            blossom::NAME => Ok(Box::new(blossom::Blossom::default())),
+            doop::NAME => Ok(Box::new(doop::Doop::default())),
+            _ => Err(SketchError::Todo("TODO!!".to_string())),
+        }
+    }
+
+    pub fn sketch(&self) -> Box<dyn Sketch> {
+        match self {
+            Self::Blossom => Box::new(blossom::Blossom::default()),
+            Self::Doop => Box::new(doop::Doop::default()),
+        }
     }
 }
 
@@ -103,11 +155,11 @@ impl SketchList {
     }
 }
 
-trait Sketch: SketchAccess {
+pub trait Sketch: SketchAccess {
     fn exec(&self) -> SketchResult<Canvas>;
 }
 
-trait SketchAccess {
+pub trait SketchAccess {
     fn param_metadata(&self) -> Vec<ParamMetadata>;
     fn mut_float_by_id(&mut self, id: u64) -> SketchResult<&mut f64>;
     fn mut_int_by_id(&mut self, id: u64) -> SketchResult<&mut i64>;

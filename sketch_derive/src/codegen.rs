@@ -3,6 +3,55 @@ use quote::quote;
 use std::str::FromStr;
 use syn::Type;
 
+pub fn consts_sketch_meta_tokens(sketch: &SketchStruct) -> proc_macro2::TokenStream {
+    let attrs = &sketch.sketch_attrs;
+    let name = if let Some(n) = &attrs.name {
+        quote!( pub const NAME: &'static str = #n; )
+    } else {
+        // TODO: use `heck` crate to beautify name
+        let n = sketch.name.to_string();
+        quote!( pub const NAME: &'static str = #n; )
+    };
+    let desc = if let Some(d) = &attrs.desc {
+        quote!( pub const DESC: &'static str = #d; )
+    } else {
+        quote!(
+            pub const DESC: &'static str = "";
+        )
+    };
+
+    quote!(
+        #name
+        #desc
+    )
+}
+
+pub fn impl_sketchmetadata_tokens(sketch: &SketchStruct) -> proc_macro2::TokenStream {
+    let ident = &sketch.name;
+    let attrs = &sketch.sketch_attrs;
+    let name = if let Some(n) = &attrs.name {
+        quote!( const NAME: &'static str = #n; )
+    } else {
+        // TODO: use `heck` crate to beautify name
+        let n = sketch.name.to_string();
+        quote!( const NAME: &'static str = #n; )
+    };
+    let desc = if let Some(d) = &attrs.desc {
+        quote!( const DESC: &'static str = #d; )
+    } else {
+        quote!(
+            const DESC: &'static str = "";
+        )
+    };
+
+    quote!(
+        impl SketchMetadata for #ident {
+            #name
+            #desc
+        }
+    )
+}
+
 pub fn impl_default_tokens(name: &syn::Ident, params: &[SketchParam]) -> proc_macro2::TokenStream {
     let param_def_tokens: Vec<proc_macro2::TokenStream> = params
         .iter()
