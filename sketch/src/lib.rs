@@ -36,7 +36,7 @@ impl Default for SketchList {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub enum ParamKind {
     Int,
     Float,
@@ -45,7 +45,7 @@ pub enum ParamKind {
     Unsupported,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ParamRange {
     Int(RangeInclusive<i64>),
     Float(RangeInclusive<f64>),
@@ -125,4 +125,150 @@ trait SketchAccess {
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use super::*;
+
+    #[test]
+    fn param_naming() {
+        #[sketch]
+        struct SketchFieldName {
+            from_field: bool,
+        }
+
+        let ts = SketchFieldName::default();
+        let md = &ts.param_metadata()[0];
+        assert_eq!(
+            md.name, "from_field",
+            "sketch parameter name was not correctly derived from field name"
+        );
+
+        #[sketch]
+        struct SketchAttrName {
+            #[param(name = "from_attr")]
+            from_field: bool,
+        }
+
+        let ts = SketchAttrName::default();
+        let md = &ts.param_metadata()[0];
+        assert_eq!(
+            md.name, "from_attr",
+            "sketch parameter name was not correctly derived from #[param(name = ____)] attribute"
+        );
+    }
+
+    #[test]
+    fn param_description() {
+        #[sketch]
+        struct SketchDescComment {
+            /// from doc comment
+            doop: bool,
+        }
+
+        let ts = SketchDescComment::default();
+        let md = &ts.param_metadata()[0];
+        assert_eq!(
+            md.description,
+            Some("from doc comment"),
+            "sketch parameter description was not correctly derived from doc comment"
+        );
+
+        #[sketch]
+        struct SketchDescAttr {
+            /// Desc from doc comment should not be used
+            #[param(description = "from attr")]
+            doop: bool,
+        }
+
+        let ts = SketchDescAttr::default();
+        let md = &ts.param_metadata()[0];
+
+        assert_eq!(
+            md.description, Some("from attr"),
+            "sketch parameter description was not correctly derived from #[param(description = ____)] attribute"
+        );
+
+        #[sketch]
+        struct SketchDescNone {
+            doop: bool,
+        }
+
+        let ts = SketchDescNone::default();
+        let md = &ts.param_metadata()[0];
+
+        assert_eq!(
+            md.description, None,
+            "sketch parameter description was not None as expected"
+        );
+    }
+
+    #[test]
+    fn param_range() {
+        #[sketch]
+        struct Sketch0 {
+            #[param(range = 0..=20)]
+            doop: u32,
+        }
+        let ts = Sketch0::default();
+        let md = &ts.param_metadata()[0];
+
+        assert_eq!(
+            md.range, Some(ParamRange::Int(0..=20)),
+            "sketch parameter int range was not correctly derived from #[param(range = ____)] attribute"
+        );
+
+        #[sketch]
+        struct Sketch1 {
+            #[param(range = 0.2..=20.)]
+            doop: f32,
+        }
+        let ts = Sketch1::default();
+        let md = &ts.param_metadata()[0];
+
+        assert_eq!(
+            md.range, Some(ParamRange::Float(0.2..=20.)),
+            "sketch parameter float range was not correctly derived from #[param(range = ____)] attribute"
+        );
+
+        #[sketch]
+        struct Sketch2 {
+            doop: i32,
+        }
+        let ts = Sketch2::default();
+        let md = &ts.param_metadata()[0];
+
+        assert_eq!(
+            md.range, None,
+            "sketch parameter range was not None as expected"
+        );
+    }
+
+    #[test]
+    fn param_type_bool() {
+        #[sketch]
+        struct TestSketch {
+            /// ParamDesc
+            flag: bool,
+        }
+
+        let ts = TestSketch::default();
+        let md = &ts.param_metadata()[0];
+
+        assert_eq!(md.kind, ParamKind::Bool);
+        assert_eq!(ts.flag, false);
+
+        #[sketch]
+        struct TestSketchNegated {
+            #[param(default = true)]
+            flag: bool,
+        }
+
+        let ts = TestSketchNegated::default();
+        let md = &ts.param_metadata()[0];
+
+        // TODO: test negation naming mechanism when clap is enabled
+        //       - When a bool is default true, the clap opt's name should be
+        //         "--no-<original-name>"
+        assert_eq!(md.kind, ParamKind::Bool);
+        assert_eq!(ts.flag, true);
+    }
+}
