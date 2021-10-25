@@ -15,7 +15,7 @@ pub struct Blossom {
     rotational_steps: u64,
 
     /// When set, the resulting bloom will be one single path, rotated LEVELS
-    /// amount of times, instead of distrete closed paths per LEVEL
+    /// amount of times, instead of discrete closed paths per LEVEL
     spiral: bool,
 
     /// Display overlaid text
