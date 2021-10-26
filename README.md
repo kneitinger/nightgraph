@@ -1,14 +1,15 @@
 # nightgraph
-A creative coding ecosystem in Rust (and WASM)
+A creative coding platform in Rust. Provides drawing APIs, a CLI, Native and WASM GUIs, and low-boilerplate artwork creation. Designed initially for [@night_generator](https://www.instagram.com/night_generator/) pen-plotter works, but steadily expanding into a general purpose platform.
 ![Artwork of human sitting, stylized similarly to contour lines or CP-1919/"Unknown Pleasures"](./img/sitting.png)
 
 ### Status
-This project is in very early active development, and probably shouldn't be used by anyone at this time 💜.
+This project is in **very early** active development, and probably shouldn't be used by anyone until it's first release in the near future 💜
 
 With that said, there are a lot of exciting features on the roadmap:
 - Scripting language and/or node editor for user created sketches at runtime.
 - Keyframes/animations in `nightgraph-ui`, as well as rendering to various video formats
 - Higher order geometric operations: clustering, fracturing, tiling, canvas-iterating operations.
+- Forward-porting [@night_generator](https://www.instagram.com/night_generator/) works written in a previous version of this platform (such as Kinect scans).
 
 and many more in this project's [issues](https://github.com/kneitinger/nightgraph/issues).
 
