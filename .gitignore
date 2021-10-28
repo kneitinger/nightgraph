@@ -1,3 +1,6 @@
 target/
 Cargo.lock
 *.svg
+# For now, rust-toolchain.toml is only used to turn on nightly for faster
+# compilation times during development.
+rust-toolchain.toml
