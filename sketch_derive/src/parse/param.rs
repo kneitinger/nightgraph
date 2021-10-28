@@ -52,9 +52,9 @@ impl SketchParam {
 
         let kind = match ty {
             syn::Type::Path(tp) => match tp.path.segments[0].ident.to_string().as_str() {
-                "i64" => quote!(ParamKind::Int),
-                "u64" => quote!(ParamKind::UInt),
-                "f64" => quote!(ParamKind::Float),
+                "isize" | "i128" | "i64" | "i32" | "i16" | "i8" => quote!(ParamKind::Int),
+                "usize" | "u128" | "u64" | "u32" | "u16" | "u8" => quote!(ParamKind::UInt),
+                "f64" | "f32" => quote!(ParamKind::Float),
                 "bool" => quote!(ParamKind::Bool),
                 _ => quote!(ParamKind::Unsupported),
             },
