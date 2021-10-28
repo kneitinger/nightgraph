@@ -75,7 +75,7 @@ impl<'a> TextBuilder<'a> {
             reader.read_to_end(&mut buf)?;
             buf
         } else {
-            include_bytes!("../../assets/Jost-500-Medium.otf").to_vec()
+            include_bytes!("../../../assets/fonts/Jost-500-Medium.otf").to_vec()
         };
         let font = Font::try_from_vec(font_data).ok_or_else(|| GeomError::font_error(""))?;
 

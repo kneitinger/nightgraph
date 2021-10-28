@@ -15,4 +15,4 @@ modify the page, stroke, etc.
 
 ## Current Screenshot
 
-![Screenshot of nightgraph-ui](../img/nightgraph-ui.png)
+![Screenshot of nightgraph-ui](../assets/img/nightgraph-ui.png)

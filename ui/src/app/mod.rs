@@ -156,11 +156,11 @@ impl epi::App for NightgraphApp {
         let mut fonts = FontDefinitions::default();
         fonts.font_data.insert(
             "Jost*".to_owned(),
-            std::borrow::Cow::Borrowed(include_bytes!("../../assets/Jost-400-Book.otf")),
+            std::borrow::Cow::Borrowed(include_bytes!("../../../assets/fonts/Jost-400-Book.otf")),
         );
         fonts.font_data.insert(
             "Monofur".to_owned(),
-            std::borrow::Cow::Borrowed(include_bytes!("../../assets/Monofur_Regular.ttf")),
+            std::borrow::Cow::Borrowed(include_bytes!("../../../assets/fonts/Monofur_Regular.ttf")),
         );
 
         // Place prop font at the highest priority for proportional
