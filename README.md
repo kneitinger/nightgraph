@@ -1,6 +1,6 @@
 # nightgraph
 A creative coding platform in Rust. Provides drawing APIs, a CLI, Native and WASM GUIs, and low-boilerplate artwork creation. Designed initially for [@night_generator](https://www.instagram.com/night_generator/) pen-plotter works, but steadily expanding into a general purpose platform.
-![Artwork of human sitting, stylized similarly to contour lines or CP-1919/"Unknown Pleasures"](./img/sitting.png)
+![Artwork of human sitting, stylized similarly to contour lines or CP-1919/"Unknown Pleasures"](./assets/img/sitting.png)
 
 ### Status
 This project is in **very early** active development, and probably shouldn't be used by anyone until it's first release in the near future 💜
