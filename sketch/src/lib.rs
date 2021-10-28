@@ -243,32 +243,56 @@ mod tests {
     }
 
     #[test]
-    fn param_type_bool() {
+    fn param_types() {
         #[sketch]
         struct TestSketch {
             /// ParamDesc
-            flag: bool,
+            a: bool,
+            b: i8,
+            c: i16,
+            d: i32,
+            e: i64,
+            f: i128,
+            g: isize,
+            h: u8,
+            i: u16,
+            j: u32,
+            k: u64,
+            l: u128,
+            m: usize,
+            n: f32,
+            o: f64,
+            p: String,
         }
-
         let ts = TestSketch::default();
-        let md = &ts.param_metadata()[0];
+        let md = &ts.param_metadata();
 
-        assert_eq!(md.kind, ParamKind::Bool);
-        assert_eq!(ts.flag, false);
-
-        #[sketch]
-        struct TestSketchNegated {
-            #[param(default = true)]
-            flag: bool,
+        for param_metadata in md {
+            match param_metadata.name {
+                "a" => {
+                    assert_eq!(param_metadata.kind, ParamKind::Bool)
+                }
+                "b" | "c" | "d" | "e" | "f" | "g" => {
+                    assert_eq!(
+                        param_metadata.kind,
+                        ParamKind::Int,
+                        "{}",
+                        param_metadata.name
+                    )
+                }
+                "h" | "i" | "j" | "k" | "l" | "m" => {
+                    assert_eq!(param_metadata.kind, ParamKind::UInt)
+                }
+                "n" | "o" => {
+                    assert_eq!(param_metadata.kind, ParamKind::Float)
+                }
+                "p" => {
+                    assert_eq!(param_metadata.kind, ParamKind::Unsupported)
+                }
+                _ => {
+                    panic!("match arm should not be reached")
+                }
+            }
         }
-
-        let ts = TestSketchNegated::default();
-        let md = &ts.param_metadata()[0];
-
-        // TODO: test negation naming mechanism when clap is enabled
-        //       - When a bool is default true, the clap opt's name should be
-        //         "--no-<original-name>"
-        assert_eq!(md.kind, ParamKind::Bool);
-        assert_eq!(ts.flag, true);
     }
 }
