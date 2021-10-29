@@ -1,1 +1,1 @@
-pub use crate::{canvas::*, geometry::*, render::*, units::*};
+pub use crate::{canvas::*, geometry::*, render::*, units::*, utils::*};
