@@ -1,5 +1,5 @@
 use super::*;
-use std::f64::consts::{E, PI, TAU};
+use std::f64::consts::{PI, TAU};
 
 /// A series of lightly complex sine modulated rings around the center of the
 /// page with optional text cutout.
@@ -20,13 +20,6 @@ pub struct Blossom {
 
     /// Display overlaid text
     display_text: bool,
-}
-
-fn exp_dec(lambda: f64, t: f64) -> f64 {
-    E.powf(-lambda * t)
-}
-fn sin_component(amplitude: f64, freq: f64, t: f64, phase: f64) -> f64 {
-    amplitude * (TAU * freq * t + phase).sin()
 }
 
 impl Sketch for Blossom {
@@ -62,10 +55,10 @@ impl Sketch for Blossom {
                 let th = step as f64 * th_delta;
                 let step_prog = step as f64 / steps as f64;
                 let base_dist = 4.25 * INCH - 2.5 * level_prog * INCH;
-                let sin_mod = sin_component(0.75 * INCH, 5., step_prog, 0. * PI)
+                let sin_mod = sine_wave(0.75 * INCH, 5., step_prog, 0. * PI)
                     * exp_dec(4., level_prog)
-                    + sin_component(0.25 * INCH, 15., step_prog, PI / 2.) * exp_dec(5., level_prog);
-                //+ sin_component(1. * INCH, 2., step_prog, 1.5*PI) * exp_dec(5., level_prog);
+                    + sine_wave(0.25 * INCH, 15., step_prog, PI / 2.) * exp_dec(5., level_prog);
+                //+ sine_wave(1. * INCH, 2., step_prog, 1.5*PI) * exp_dec(5., level_prog);
                 let dist = (base_dist + sin_mod) * Vec2::from_angle(th);
                 points.push(center + dist);
             }
