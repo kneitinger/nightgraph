@@ -9,6 +9,9 @@ use nightsketch::{ParamKind, ParamMetadata, ParamRange, SketchList};
 mod drawing;
 use drawing::Drawing;
 
+mod sketch_control;
+use sketch_control::*;
+
 #[cfg_attr(feature = "persistence", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "persistence", serde(default))]
 pub struct NightgraphApp {
@@ -17,102 +20,23 @@ pub struct NightgraphApp {
     #[serde(skip)]
     drawing: Drawing,
 
-    sketch: SketchList,
+    #[serde(skip)]
+    sketch_control: SketchControl,
 
     ui_scale: Option<f32>,
-
-    // TODO: previous sessions mode using persistence.
-    // saves the sketch struct values, but not the rendered shapes
-    #[serde(skip)]
-    params: Vec<ParamMetadata>,
 }
 
 impl Default for NightgraphApp {
     fn default() -> Self {
-        let sketch = SketchList::default();
-        let params = sketch.param_metadata();
         Self {
-            sketch,
+            sketch_control: SketchControl::default(),
             drawing: Drawing::default(),
-            params,
             ui_scale: Default::default(),
         }
     }
 }
 
 impl NightgraphApp {
-    fn param_grid_contents(&mut self, ui: &mut egui::Ui) {
-        for param in &self.params {
-            let sketch = &mut self.sketch;
-            let drawing = &mut self.drawing;
-            let id = param.id;
-            match param.kind {
-                ParamKind::Int => {
-                    ui.label(param.name);
-                    let val = sketch.mut_int_by_id(id).unwrap();
-                    let init = *val;
-                    let dragval = if let Some(ParamRange::Int(range)) = &param.range {
-                        egui::widgets::DragValue::new(val).clamp_range(range.to_owned())
-                    } else {
-                        egui::widgets::DragValue::new(val)
-                    };
-                    ui.add(dragval);
-                    if *val != init {
-                        drawing.rerender(sketch.exec().unwrap().render_egui());
-                    }
-                }
-                ParamKind::Float => {
-                    ui.label(param.name);
-                    let val = sketch.mut_float_by_id(id).unwrap();
-                    let init = *val;
-                    let dragval = if let Some(ParamRange::Float(range)) = &param.range {
-                        egui::widgets::DragValue::new(val).clamp_range(range.to_owned())
-                    } else {
-                        egui::widgets::DragValue::new(val)
-                    };
-                    ui.add(dragval);
-                    if (*val - init).abs() > f64::EPSILON {
-                        drawing.rerender(sketch.exec().unwrap().render_egui());
-                    }
-                }
-                ParamKind::UInt => {
-                    ui.label(param.name);
-                    let val = sketch.mut_uint_by_id(id).unwrap();
-                    let init = *val;
-                    let dragval = if let Some(ParamRange::Int(range)) = &param.range {
-                        egui::widgets::DragValue::new(val).clamp_range(range.to_owned())
-                    } else {
-                        egui::widgets::DragValue::new(val)
-                    };
-                    ui.add(dragval);
-                    if *val != init {
-                        drawing.rerender(sketch.exec().unwrap().render_egui());
-                    }
-                }
-                ParamKind::Bool => {
-                    // Checkbox/Label Button box by default
-                    let val = sketch.mut_bool_by_id(id).unwrap();
-                    let init = *val;
-
-                    ui.label(param.name);
-                    ui.add(egui::widgets::Checkbox::new(val, ""));
-                    if *val != init {
-                        drawing.rerender(sketch.exec().unwrap().render_egui());
-                    }
-                }
-                // TODO: Showing a label with param name and unsupported would by nice
-                ParamKind::Unsupported => {}
-            }
-            ui.end_row();
-        }
-    }
-    fn param_grid(&mut self, ui: &mut egui::Ui) {
-        egui::Grid::new("params_grid")
-            .num_columns(2)
-            .spacing([55.0, 4.0])
-            .striped(false)
-            .show(ui, |ui| self.param_grid_contents(ui));
-    }
 
     fn view_settings_grid(&mut self, ui: &mut egui::Ui) {
         egui::Grid::new("view_settings_grid")
@@ -220,7 +144,13 @@ impl epi::App for NightgraphApp {
                 ui.collapsing("View Settings", |ui| {
                     self.view_settings_grid(ui);
                 });
-                self.param_grid(ui);
+                ui.collapsing("Sketch Settings", |ui| {
+                    self.sketch_control.param_grid(ui);
+                });
+                if self.sketch_control.needs_render {
+                    self.drawing.rerender(self.sketch_control.render().unwrap());
+                    self.sketch_control.needs_render = false;
+                }
             });
 
         egui::CentralPanel::default().show(ctx, |ui| {
