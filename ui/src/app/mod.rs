@@ -12,6 +12,7 @@ use sketch_control::*;
 
 #[cfg_attr(feature = "persistence", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "persistence", serde(default))]
+#[derive(Default)]
 pub struct NightgraphApp {
     // Temporarily opt out of state persistence on drawing until the sketch
     // and associated info is actually stored in the app state
@@ -22,16 +23,6 @@ pub struct NightgraphApp {
     sketch_control: SketchControl,
 
     ui_scale: Option<f32>,
-}
-
-impl Default for NightgraphApp {
-    fn default() -> Self {
-        Self {
-            sketch_control: SketchControl::default(),
-            drawing: Drawing::default(),
-            ui_scale: Default::default(),
-        }
-    }
 }
 
 impl NightgraphApp {
