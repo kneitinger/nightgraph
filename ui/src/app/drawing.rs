@@ -137,4 +137,26 @@ impl Drawing {
 
         painter.extend(self.translate_scale(to_screen));
     }
+
+    pub fn settings_grid(&mut self, ui: &mut egui::Ui) {
+        egui::Grid::new("view_settings_grid")
+            .num_columns(2)
+            .striped(false)
+            .show(ui, |ui| {
+                ui.label("Draw debug geometry");
+                ui.checkbox(&mut self.draw_debug_geom, "");
+                ui.end_row();
+                ui.label("Draw page outline");
+                ui.checkbox(&mut self.draw_page_outline, "");
+                ui.end_row();
+
+                ui.label("Page color");
+                egui::color_picker::color_edit_button_srgba(
+                    ui,
+                    &mut self.bg_color,
+                    egui::color_picker::Alpha::OnlyBlend,
+                );
+                ui.end_row();
+            });
+    }
 }

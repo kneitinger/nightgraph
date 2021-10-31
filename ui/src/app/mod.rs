@@ -3,8 +3,6 @@ use eframe::{
     egui::{FontDefinitions, FontFamily, Style},
     epi,
 };
-use nightgraphics::render::EguiRenderer;
-use nightsketch::{ParamKind, ParamMetadata, ParamRange, SketchList};
 
 mod drawing;
 use drawing::Drawing;
@@ -37,46 +35,7 @@ impl Default for NightgraphApp {
 }
 
 impl NightgraphApp {
-
-    fn view_settings_grid(&mut self, ui: &mut egui::Ui) {
-        egui::Grid::new("view_settings_grid")
-            .num_columns(2)
-            .striped(false)
-            .show(ui, |ui| {
-                ui.label("Draw debug geometry");
-                ui.checkbox(&mut self.drawing.draw_debug_geom, "");
-                ui.end_row();
-                ui.label("Draw page outline");
-                ui.checkbox(&mut self.drawing.draw_page_outline, "");
-                ui.end_row();
-
-                ui.label("Page color");
-                egui::color_picker::color_edit_button_srgba(
-                    ui,
-                    &mut self.drawing.bg_color,
-                    egui::color_picker::Alpha::OnlyBlend,
-                );
-                ui.end_row();
-            });
-    }
-}
-
-impl epi::App for NightgraphApp {
-    fn name(&self) -> &str {
-        "nightgraph ui"
-    }
-
-    fn setup(
-        &mut self,
-        ctx: &egui::CtxRef,
-        _frame: &mut epi::Frame<'_>,
-        _storage: Option<&dyn epi::Storage>,
-    ) {
-        #[cfg(feature = "persistence")]
-        if let Some(storage) = _storage {
-            *self = epi::get_value(storage, epi::APP_KEY).unwrap_or_default()
-        }
-
+    fn setup_fonts(&mut self, ctx: &egui::CtxRef) {
         let mut fonts = FontDefinitions::default();
         fonts.font_data.insert(
             "Jost*".to_owned(),
@@ -116,6 +75,26 @@ impl epi::App for NightgraphApp {
             .insert(0, "Monofur".to_owned());
 
         ctx.set_fonts(fonts);
+    }
+}
+
+impl epi::App for NightgraphApp {
+    fn name(&self) -> &str {
+        "nightgraph ui"
+    }
+
+    fn setup(
+        &mut self,
+        ctx: &egui::CtxRef,
+        _frame: &mut epi::Frame<'_>,
+        _storage: Option<&dyn epi::Storage>,
+    ) {
+        #[cfg(feature = "persistence")]
+        if let Some(storage) = _storage {
+            *self = epi::get_value(storage, epi::APP_KEY).unwrap_or_default()
+        }
+
+        self.setup_fonts(ctx);
 
         let style = Style {
             visuals: egui::Visuals::light(),
@@ -142,7 +121,7 @@ impl epi::App for NightgraphApp {
                 ui.add(egui::Separator::default().spacing(15.));
 
                 ui.collapsing("View Settings", |ui| {
-                    self.view_settings_grid(ui);
+                    self.drawing.settings_grid(ui);
                 });
                 ui.collapsing("Sketch Settings", |ui| {
                     self.sketch_control.param_grid(ui);
