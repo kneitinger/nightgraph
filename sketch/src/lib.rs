@@ -1,13 +1,12 @@
 pub(crate) use nightgraphics::prelude::*;
-pub(crate) use nightsketch_derive::sketch;
 
 mod sketch;
 pub use sketch::*;
 mod metadata;
 pub use metadata::*;
 
-mod blossom;
-use blossom::*;
+mod sketches;
+use sketches::*;
 
 #[cfg_attr(feature = "cli", derive(clap::Parser))]
 #[cfg_attr(
