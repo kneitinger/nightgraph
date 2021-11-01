@@ -30,7 +30,7 @@ pub struct SketchData {
 
 impl Default for Drawing {
     fn default() -> Self {
-        let (sketch_size, shapes) = SketchList::default().exec().unwrap().render_egui();
+        let (sketch_size, shapes) = SketchList::default_sketch().exec().unwrap().render_egui();
         let sketch_rect = egui::Rect::from_min_size(Pos2::ZERO, sketch_size);
         Self {
             shapes,
