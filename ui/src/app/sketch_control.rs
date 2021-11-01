@@ -3,17 +3,18 @@ use nightgraphics::render::EguiRenderer;
 use nightsketch::*;
 
 pub struct SketchControl {
-    sketch: SketchList,
+    sketch: Box<dyn Sketch>,
     params: Vec<ParamMetadata>,
     pub needs_render: bool,
 }
 
 impl Default for SketchControl {
     fn default() -> Self {
-        let sketch = SketchList::default();
+        let sketch = SketchList::default_sketch();
+        let params = sketch.param_metadata();
         SketchControl {
-            sketch: SketchList::default(),
-            params: sketch.param_metadata(),
+            sketch,
+            params,
             needs_render: true,
         }
     }

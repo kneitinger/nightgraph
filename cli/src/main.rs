@@ -1,13 +1,13 @@
 use clap::{crate_authors, crate_description, crate_version, Parser};
 use nightgraphics::render::SvgRenderer;
-use nightsketch::SketchList;
+use nightsketch::SketchSubcommand;
 use serde::{Deserialize, Serialize};
 
 #[derive(clap::Parser, Serialize, Deserialize)]
 #[clap(about= crate_description!(), version = crate_version!(), author = crate_authors!())]
 struct Opts {
     #[clap(subcommand)]
-    sketch: SketchList,
+    sketch: SketchSubcommand,
 }
 
 fn main() {
