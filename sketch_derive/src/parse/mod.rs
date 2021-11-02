@@ -8,6 +8,9 @@ pub use param::SketchParam;
 mod param_attr;
 pub use param_attr::{ParamAttr, ParamAttrs};
 
+mod sketchlist;
+pub use sketchlist::{SketchList, SketchListEntry};
+
 mod utils;
 
 /*  /// Doc string
