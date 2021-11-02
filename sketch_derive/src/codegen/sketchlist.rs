@@ -9,7 +9,8 @@ pub fn sketch_subcommand_enum_tokens(sketches: &[SketchListEntry]) -> proc_macro
         .iter()
         .map(|sketch| {
             let s = &sketch.sketch;
-            quote!(#s(#s))
+            let m = &sketch.module;
+            quote!(#s(#m::#s))
         })
         .collect();
 
@@ -51,7 +52,7 @@ pub fn sketch_subcommand_enum_tokens(sketches: &[SketchListEntry]) -> proc_macro
     quote!( #sketch_subcommand_tokens )
 }
 
-pub fn sketch_mod_use_tokens(sketches: &[SketchListEntry]) -> proc_macro2::TokenStream {
+pub fn sketch_mod_stmts_tokens(sketches: &[SketchListEntry]) -> proc_macro2::TokenStream {
     let mod_stmts: Vec<proc_macro2::TokenStream> = sketches
         .iter()
         .map(|sketch| {
@@ -59,17 +60,38 @@ pub fn sketch_mod_use_tokens(sketches: &[SketchListEntry]) -> proc_macro2::Token
             quote!(mod #m)
         })
         .collect();
-    let use_stmts: Vec<proc_macro2::TokenStream> = sketches
+
+    quote! {
+        #(#mod_stmts);*;
+    }
+}
+
+pub fn sketchlist_struct_tokens(sketches: &[SketchListEntry]) -> proc_macro2::TokenStream {
+    let sketch_by_name_match_arms: Vec<proc_macro2::TokenStream> = sketches
         .iter()
         .map(|sketch| {
             let m = &sketch.module;
             let s = &sketch.sketch;
-            quote!(pub use #m::#s)
+            let s_name = s.to_string();
+            quote! {
+                #s_name => Ok(Box::new(#m::#s::default()))
+            }
         })
         .collect();
 
-    quote!(
-        #(#mod_stmts);*;
-        #(#use_stmts);*;
-    )
+    quote! {
+        pub struct SketchList {}
+
+        impl SketchList {
+            pub fn default_sketch() -> Box<dyn Sketch> {
+                Box::new(blossom::Blossom::default())
+            }
+            pub fn sketch_by_name(name: &str) -> SketchResult<Box<dyn Sketch>> {
+                match name {
+                    #(#sketch_by_name_match_arms),*,
+                    _ => Err(SketchError::Todo("sdfs".to_string())),
+                }
+            }
+        }
+    }
 }
