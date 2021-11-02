@@ -26,3 +26,11 @@ pub fn sketch(_attr: TokenStream, input: TokenStream) -> TokenStream {
     )
     .into()
 }
+
+#[proc_macro]
+pub fn sketchlist(input: TokenStream) -> TokenStream {
+    let sketches: SketchList = parse_macro_input!(input);
+    let sketch_mod_use_stmts = sketch_mod_use_tokens(&sketches.sketches);
+    let sketch_subcommand_enum = sketch_subcommand_enum_tokens(&sketches.sketches);
+    quote!(#sketch_mod_use_stmts #sketch_subcommand_enum).into()
+}
