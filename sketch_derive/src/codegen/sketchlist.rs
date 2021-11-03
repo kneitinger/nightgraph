@@ -79,6 +79,14 @@ pub fn sketchlist_struct_tokens(sketches: &[SketchListEntry]) -> proc_macro2::To
         })
         .collect();
 
+    let sketch_names: Vec<proc_macro2::TokenStream> = sketches
+        .iter()
+        .map(|sketch| {
+            let s_name = sketch.sketch.to_string();
+            quote! { #s_name.to_string() }
+        })
+        .collect();
+
     quote! {
         pub struct SketchList {}
 
@@ -91,6 +99,11 @@ pub fn sketchlist_struct_tokens(sketches: &[SketchListEntry]) -> proc_macro2::To
                     #(#sketch_by_name_match_arms),*,
                     _ => Err(SketchError::Todo("sdfs".to_string())),
                 }
+            }
+            pub fn sketch_names() -> Vec<String> {
+                vec![
+                    #(#sketch_names),*
+                ]
             }
         }
     }

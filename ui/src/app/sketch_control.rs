@@ -4,17 +4,23 @@ use nightsketch::*;
 
 pub struct SketchControl {
     sketch: Box<dyn Sketch>,
+    sketch_name: String,
     params: Vec<ParamMetadata>,
+    sketch_names: Vec<String>,
     pub needs_render: bool,
 }
 
 impl Default for SketchControl {
     fn default() -> Self {
         let sketch = SketchList::default_sketch();
+        let sketch_name = "Blossom".to_string();
         let params = sketch.param_metadata();
+        let sketch_names = SketchList::sketch_names();
         SketchControl {
             sketch,
+            sketch_name,
             params,
+            sketch_names,
             needs_render: true,
         }
     }
@@ -22,6 +28,24 @@ impl Default for SketchControl {
 
 impl SketchControl {
     fn param_grid_contents(&mut self, ui: &mut egui::Ui) {
+        ui.label("Sketch");
+        let val = self.sketch_name.to_string();
+        egui::ComboBox::from_label("")
+            .selected_text(self.sketch_name.to_string())
+            .show_ui(ui, |ui| {
+                for n in &self.sketch_names {
+                    ui.selectable_value(&mut self.sketch_name, n.to_string(), n);
+                }
+            });
+        if val != self.sketch_name {
+            self.sketch = SketchList::sketch_by_name(&self.sketch_name).unwrap();
+            self.needs_render = true;
+            self.params = self.sketch.param_metadata();
+        }
+        ui.end_row();
+        // Leave some visual space without a separator
+        ui.end_row();
+
         for param in &self.params {
             let sketch = &mut self.sketch;
             let id = param.id;
