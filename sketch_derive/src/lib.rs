@@ -19,11 +19,11 @@ pub fn sketch(_attr: TokenStream, input: TokenStream) -> TokenStream {
     let impl_sketchaccess = impl_sketchaccess_tokens(name, params);
     let impl_default = impl_default_tokens(name, params);
 
-    quote! {
+    quote!(
         #struct_tokens
         #impl_default
         #impl_sketchaccess
-    }
+    )
     .into()
 }
 
@@ -36,10 +36,10 @@ pub fn sketchlist(input: TokenStream) -> TokenStream {
     let sketch_subcommand_enum = sketch_subcommand_enum_tokens(sketches);
     let sketchlist_struct = sketchlist_struct_tokens(sketches);
 
-    quote! {
+    quote!(
         #sketch_mod_stmts
         #sketch_subcommand_enum
         #sketchlist_struct
-    }
+    )
     .into()
 }
