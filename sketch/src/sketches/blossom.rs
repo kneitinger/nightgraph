@@ -26,7 +26,7 @@ impl Sketch for Blossom {
     fn exec(&self) -> SketchResult<Canvas> {
         const WIDTH: f64 = 11. * INCH;
         const HEIGHT: f64 = 17. * INCH;
-        let mut canvas = Canvas::new(point(0, 0), Size::new(11. * INCH, 17. * INCH));
+        let mut canvas = Canvas::new(point(0, 0), Size::new(WIDTH, HEIGHT));
 
         let center = point(WIDTH / 2., HEIGHT / 2.);
 
