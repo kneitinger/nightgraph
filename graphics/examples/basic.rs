@@ -35,5 +35,5 @@ fn main() {
         .unwrap();
     canvas.add(text);
 
-    canvas.render_svg();
+    canvas.render_svg("test_drawing.svg");
 }
