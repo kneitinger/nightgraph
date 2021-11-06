@@ -4,16 +4,16 @@ use svg::node::element::{path::Data, Circle as SvgCircle, Path as SvgPath};
 use svg::Document;
 
 pub trait SvgRenderer {
-    fn render_svg(&self) {}
+    fn render_svg(&self, path: &str);
 }
 
 impl SvgRenderer for Canvas {
-    fn render_svg(&self) {
+    fn render_svg(&self, path: &str) {
         let doc = Document::new()
             .set("width", self.width())
             .set("height", self.height());
         let rendered_doc = self.render(doc);
-        svg::save("image.svg".to_string(), &rendered_doc).expect("Unable to save SVG");
+        svg::save(path.to_string(), &rendered_doc).expect("Unable to save SVG");
     }
 }
 
@@ -51,25 +51,6 @@ impl SvgRenderable for Circle {
     }
 }
 
-/*
-impl SvgRenderable<SvgLine> for geometry::Line {
-    fn to_svg(&self) -> RenderResult<SvgLine> {
-        let p1 = self.inner().p0;
-        let p2 = self.inner().p1;
-        Ok(SvgLine::new()
-            .set("fill", "none")
-            // TODO: allow stroke to be set at or before render time
-            .set("stroke", "black")
-            .set("stroke-width", "0.5mm")
-            .set("x1", p1.x)
-            .set("y1", p1.y)
-            .set("x2", p2.x)
-            .set("y2", p2.y))
-    }
-}
-*/
-
-//impl<T: geometry::WrapsShape<Inner = kurbo::BezPath>> SvgRenderable<SvgPath> for T
 impl SvgRenderable for Shape {
     fn render(&self, doc: Document) -> Document {
         match self {

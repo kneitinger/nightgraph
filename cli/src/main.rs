@@ -8,6 +8,10 @@ use serde::{Deserialize, Serialize};
 struct Opts {
     #[clap(subcommand)]
     sketch: SketchSubcommand,
+
+    /// Path where the resulting SVG file is stored
+    #[clap(long, default_value = "drawing.svg")]
+    output: String,
 }
 
 fn main() {
@@ -16,6 +20,9 @@ fn main() {
     // JSON serialization will eventually be used for config file
     // saving and loading
     println!("{}", opts_json);
-    let canvas = opts.sketch.exec().unwrap();
-    canvas.render_svg();
+    let canvas = opts.sketch.exec();
+    match canvas {
+        Ok(c) => c.render_svg(&opts.output),
+        Err(e) => println!("Error rendering sketch: {:?}", e),
+    }
 }
