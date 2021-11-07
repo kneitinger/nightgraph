@@ -13,6 +13,7 @@ pub struct PathBuilder {
     points: Vec<Point>,
     closed: bool,
     cmds: Vec<PathEl>,
+    stroke_width: f64,
     precompute: bool,
     mode: PathBuildMode,
 }
@@ -24,12 +25,18 @@ impl PathBuilder {
             closed: false,
             cmds: vec![],
             precompute: false,
+            stroke_width: DEFAULT_STROKE_WIDTH,
             mode: PathBuildMode::Unknown,
         }
     }
 
     pub fn closed(&mut self) -> &mut Self {
         self.closed = true;
+        self
+    }
+
+    pub fn stroke_width(&mut self, stroke_width: f64) -> &mut Self {
+        self.stroke_width = stroke_width;
         self
     }
 
@@ -122,8 +129,7 @@ impl PathBuilder {
             None
         };
 
-        // TODO: Add method
-        let stroke_width = DEFAULT_STROKE_WIDTH;
+        let stroke_width = self.stroke_width;
 
         Ok(Path {
             inner,

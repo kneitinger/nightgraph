@@ -1,4 +1,4 @@
-use super::{point, GeomError, GeomResult, Path, PathEl, Point};
+use super::{point, GeomError, GeomResult, Path, PathBuilder, PathEl, Point, DEFAULT_STROKE_WIDTH};
 use rusttype::{Font, OutlineBuilder, Scale, Vector};
 use std::fs::File;
 use std::io::BufReader;
@@ -10,6 +10,7 @@ pub struct TextBuilder<'a> {
     text_lines: Vec<&'a str>,
     line_padding: Option<f64>,
     origin: Option<Point>,
+    stroke_width: Option<f64>,
 }
 
 #[allow(clippy::new_without_default)]
@@ -21,6 +22,7 @@ impl<'a> TextBuilder<'a> {
             text_lines: vec![],
             line_padding: None,
             origin: None,
+            stroke_width: None,
         }
     }
 
@@ -36,6 +38,11 @@ impl<'a> TextBuilder<'a> {
 
     pub fn text_line(mut self, text: &'a str) -> Self {
         self.text_lines.push(text);
+        self
+    }
+
+    pub fn stroke_width(mut self, width: f64) -> Self {
+        self.stroke_width = Some(width);
         self
     }
 
@@ -119,8 +126,17 @@ impl<'a> TextBuilder<'a> {
                     y: (v_metrics.ascent + line_padding as f32),
                 };
         }
-        //Ok(paths)
-        Path::from_commands(&combined_cmds)
+
+        let stroke_width = match self.stroke_width {
+            Some(w) => w,
+            None => DEFAULT_STROKE_WIDTH,
+        };
+
+        PathBuilder::new()
+            .commands(&combined_cmds)
+            .precompute()
+            .stroke_width(stroke_width)
+            .build()
     }
 }
 
