@@ -5,6 +5,7 @@ use kurbo::Shape as KurboShape;
 #[derive(Clone, Debug)]
 pub struct Poly {
     inner: BezPath,
+    stroke_width: f64,
 }
 
 impl Poly {
@@ -22,7 +23,10 @@ impl Poly {
             }
             _ => return Err(GeomError::malformed_path("Poly has less than three points")),
         }
-        Ok(Self { inner })
+        Ok(Self {
+            inner,
+            stroke_width: DEFAULT_STROKE_WIDTH,
+        })
     }
     fn inner(&self) -> BezPath {
         self.inner.clone()
@@ -31,6 +35,7 @@ impl Poly {
     pub fn new_smooth(points: &[Point]) -> Self {
         Poly {
             inner: Path::from_points_smooth_closed(points).as_bezpath(),
+            stroke_width: DEFAULT_STROKE_WIDTH,
         }
     }
 
@@ -38,6 +43,7 @@ impl Poly {
         let ts = kurbo::TranslateScale::new(translation, 1.0);
         Self {
             inner: ts * self.inner.clone(),
+            stroke_width: self.stroke_width,
         }
     }
 }
@@ -45,6 +51,9 @@ impl Poly {
 impl Shaped for Poly {
     fn as_shape(&self) -> Shape {
         Shape::Poly(self.clone())
+    }
+    fn stroke(&self) -> f64 {
+        self.stroke_width
     }
     fn to_path(&self) -> Path {
         Path::from(self.inner())

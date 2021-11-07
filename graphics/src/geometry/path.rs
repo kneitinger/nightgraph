@@ -122,9 +122,13 @@ impl PathBuilder {
             None
         };
 
+        // TODO: Add method
+        let stroke_width = DEFAULT_STROKE_WIDTH;
+
         Ok(Path {
             inner,
             bounding_box,
+            stroke_width,
         })
     }
 }
@@ -139,6 +143,7 @@ impl Default for PathBuilder {
 pub struct Path {
     inner: BezPath,
     bounding_box: Option<kurbo::Rect>,
+    stroke_width: f64,
 }
 
 impl From<BezPath> for Path {
@@ -146,6 +151,7 @@ impl From<BezPath> for Path {
         Self {
             inner: bez_path,
             bounding_box: None,
+            stroke_width: DEFAULT_STROKE_WIDTH,
         }
     }
 }
@@ -158,6 +164,7 @@ impl Path {
         Self {
             inner,
             bounding_box: None,
+            stroke_width: DEFAULT_STROKE_WIDTH,
         }
     }
 
@@ -175,6 +182,7 @@ impl Path {
             [PathEl::MoveTo(_), _, ..] => Ok(Self {
                 inner: BezPath::from_vec(Vec::from(commands)),
                 bounding_box: None,
+                stroke_width: DEFAULT_STROKE_WIDTH,
             }),
             [_, ..] => Err(GeomError::path_error(
                 "paths must start with a MoveTo command",
@@ -299,6 +307,7 @@ impl Path {
         Self {
             inner: ts * self.inner.clone(),
             bounding_box: self.bounding_box,
+            stroke_width: self.stroke_width,
         }
     }
 }
@@ -309,6 +318,9 @@ impl Shaped for Path {
     }
     fn as_bezpath(&self) -> BezPath {
         self.inner.clone()
+    }
+    fn stroke(&self) -> f64 {
+        self.stroke_width
     }
     fn as_shape(&self) -> Shape {
         Shape::Path(self.clone())

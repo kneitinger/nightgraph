@@ -1,6 +1,6 @@
 use super::Vec2;
-use super::DEFAULT_ACCURACY;
 use super::{Path, Point, Shape, Shaped, DEFAULT_TOLERANCE};
+use super::{DEFAULT_ACCURACY, DEFAULT_STROKE_WIDTH};
 use kurbo::BezPath;
 use kurbo::Circle as KurboCircle;
 use kurbo::Shape as KurboShape;
@@ -8,12 +8,14 @@ use kurbo::Shape as KurboShape;
 #[derive(Debug, Clone, Copy)]
 pub struct Circle {
     inner: KurboCircle,
+    stroke_width: f64,
 }
 
 impl Circle {
     pub fn new(center: impl Into<Point>, radius: f64) -> Circle {
         Self {
             inner: KurboCircle::new(center, radius),
+            stroke_width: DEFAULT_STROKE_WIDTH,
         }
     }
 
@@ -31,6 +33,7 @@ impl Circle {
         let ts = kurbo::TranslateScale::new(translation, 1.0);
         Self {
             inner: ts * self.inner,
+            stroke_width: self.stroke_width,
         }
     }
 }
@@ -56,6 +59,9 @@ impl Shaped for Circle {
     }
     fn area(&self) -> f64 {
         self.inner.area()
+    }
+    fn stroke(&self) -> f64 {
+        self.stroke_width
     }
 }
 

@@ -1,15 +1,20 @@
-use super::{GeomResult, Path, Point, Shape, Shaped, Vec2, DEFAULT_ACCURACY, DEFAULT_TOLERANCE};
+use super::{
+    GeomResult, Path, Point, Shape, Shaped, Vec2, DEFAULT_ACCURACY, DEFAULT_STROKE_WIDTH,
+    DEFAULT_TOLERANCE,
+};
 use kurbo::{BezPath, Line as KurboLine, ParamCurve, Shape as KurboShape};
 
 #[derive(Copy, Clone, Debug)]
 pub struct Line {
     inner: KurboLine,
+    stroke_width: f64,
 }
 
 impl Line {
     pub fn new(a: Point, b: Point) -> GeomResult<Line> {
         Ok(Self {
             inner: KurboLine::new(a, b),
+            stroke_width: DEFAULT_STROKE_WIDTH,
         })
     }
 
@@ -31,6 +36,7 @@ impl Line {
         let ts = kurbo::TranslateScale::new(translation, 1.0);
         Self {
             inner: ts * self.inner,
+            stroke_width: self.stroke_width,
         }
     }
 }
@@ -41,6 +47,9 @@ impl Shaped for Line {
     }
     fn to_path(&self) -> Path {
         Path::from(self.inner.into_path(DEFAULT_TOLERANCE))
+    }
+    fn stroke(&self) -> f64 {
+        self.stroke_width
     }
     fn as_bezpath(&self) -> BezPath {
         self.inner.into_path(DEFAULT_TOLERANCE)
