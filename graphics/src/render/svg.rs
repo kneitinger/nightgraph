@@ -1,5 +1,5 @@
 use crate::canvas::*;
-use crate::geometry::{Circle, PathEl, Point, Shape};
+use crate::geometry::{Circle, PathEl, Point, Shape, Shaped};
 use svg::node::element::{path::Data, Circle as SvgCircle, Path as SvgPath};
 use svg::Document;
 
@@ -41,9 +41,8 @@ impl SvgRenderable for Circle {
     fn render(&self, doc: Document) -> Document {
         let c = SvgCircle::new()
             .set("fill", "none")
-            // TODO: allow stroke to be set at or before render time
             .set("stroke", "black")
-            .set("stroke-width", "0.5mm")
+            .set("stroke-width", self.stroke())
             .set("cx", self.center().x)
             .set("cy", self.center().y)
             .set("r", self.radius());
@@ -75,9 +74,8 @@ impl SvgRenderable for Shape {
                 doc.add(
                     SvgPath::new()
                         .set("fill", "none")
-                        // TODO: allow stroke to be set at or before render time
                         .set("stroke", "black")
-                        .set("stroke-width", "0.5mm")
+                        .set("stroke-width", self.stroke())
                         .set("fill-rule", "evenodd")
                         .set("d", d),
                 )
