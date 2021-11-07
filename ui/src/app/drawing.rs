@@ -58,16 +58,25 @@ impl Drawing {
                 EguiShape::Circle(circ) => EguiShape::circle_stroke(
                     transformation * circ.center,
                     circ.radius * transformation.scale().x,
-                    circ.stroke,
+                    egui::Stroke {
+                        color: circ.stroke.color,
+                        width: transformation.scale().x * circ.stroke.width,
+                    },
                 ),
                 EguiShape::LineSegment { points, stroke } => EguiShape::line_segment(
                     [transformation * points[0], transformation * points[1]],
-                    *stroke,
+                    egui::Stroke {
+                        color: stroke.color,
+                        width: transformation.scale().x * stroke.width,
+                    },
                 ),
                 EguiShape::Rect(rect) => EguiShape::rect_stroke(
                     transformation.transform_rect(rect.rect),
                     rect.corner_radius,
-                    rect.stroke,
+                    egui::Stroke {
+                        color: rect.stroke.color,
+                        width: transformation.scale().x * rect.stroke.width,
+                    },
                 ),
                 _ => EguiShape::Noop,
             })
