@@ -65,6 +65,10 @@ impl Shape {
         self.inner().to_path()
     }
 
+    pub fn stroke(&self) -> f64 {
+        self.inner().stroke()
+    }
+
     pub fn to_lines(&self) -> Vec<Line> {
         self.inner().to_lines()
     }
