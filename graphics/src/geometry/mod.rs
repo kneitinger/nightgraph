@@ -30,6 +30,7 @@ pub fn avg_point(p1: Point, p2: Point) -> Point {
 }
 
 pub const DEFAULT_TOLERANCE: f64 = 1e-1;
+pub const DEFAULT_STROKE_WIDTH: f64 = 0.45 * crate::units::MM;
 
 pub enum Shape {
     Path(Path),
@@ -84,6 +85,7 @@ pub trait Shaped {
     fn to_path(&self) -> Path;
     fn as_bezpath(&self) -> BezPath;
     fn perimeter(&self) -> f64;
+    fn stroke(&self) -> f64;
     fn difference(&self, other: &dyn Shaped) -> Path {
         if self
             .bounding_box()
