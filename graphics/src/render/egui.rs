@@ -1,5 +1,5 @@
 use crate::canvas::*;
-use crate::geometry::{Circle, Point, Shape};
+use crate::geometry::{Circle, Point, Shape, Shaped};
 use egui::{Color32, Pos2, Shape as EguiShape, Stroke};
 
 const WHITE: Color32 = Color32::from_rgb(255, 255, 255);
@@ -47,7 +47,7 @@ impl EguiRenderable for Circle {
             Pos2::new(c.x as f32, c.y as f32),
             self.inner().radius as f32,
             // TODO: allow stroke to be set at or before render time
-            Stroke::new(2., WHITE),
+            Stroke::new(self.stroke() as f32, WHITE),
         )]
     }
 }
@@ -66,7 +66,7 @@ impl EguiRenderable for Shape {
                     .iter()
                     .map(|line| EguiShape::LineSegment {
                         points: [p(&line.p0()), p(&line.p1())],
-                        stroke: Stroke::new(2., WHITE),
+                        stroke: Stroke::new(self.stroke() as f32, WHITE),
                     })
                     .collect()
             }
