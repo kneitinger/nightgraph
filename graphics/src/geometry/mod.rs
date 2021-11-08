@@ -6,6 +6,7 @@ use kurbo::{
 pub use kurbo::{PathEl, Point, Vec2, DEFAULT_ACCURACY};
 
 mod circle;
+mod ellipse;
 mod error;
 mod line;
 mod path;
@@ -13,6 +14,7 @@ mod poly;
 mod text;
 
 pub use circle::Circle;
+pub use ellipse::Ellipse;
 pub use error::*;
 pub use line::Line;
 pub use path::{Path, PathBuilder};
@@ -35,6 +37,7 @@ pub const DEFAULT_STROKE_WIDTH: f64 = 0.45 * crate::units::MM;
 pub enum Shape {
     Path(Path),
     Circle(Circle),
+    Ellipse(Ellipse),
     Line(Line),
     Poly(Poly),
 }
@@ -54,6 +57,7 @@ impl Shape {
         match self {
             Self::Path(p) => p,
             Self::Circle(c) => c,
+            Self::Ellipse(e) => e,
             Self::Line(l) => l,
             Self::Poly(p) => p,
         }
@@ -76,6 +80,7 @@ impl Shape {
     pub fn translate(&self, translation: Vec2) -> Self {
         match self {
             Self::Circle(c) => Self::Circle(c.translate(translation)),
+            Self::Ellipse(e) => Self::Ellipse(e.translate(translation)),
             Self::Path(p) => Self::Path(p.translate(translation)),
             Self::Line(l) => Self::Line(l.translate(translation)),
             Self::Poly(p) => Self::Poly(p.translate(translation)),
