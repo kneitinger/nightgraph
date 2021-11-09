@@ -2,9 +2,72 @@ use super::*;
 use kurbo::BezPath;
 use kurbo::Shape as KurboShape;
 
+pub struct PolyBuilder {
+    points: Option<Vec<Point>>,
+    stroke_width: f64,
+    smooth: bool,
+    precompute: bool,
+}
+
+impl PolyBuilder {
+    pub fn new() -> Self {
+        Self {
+            points: None,
+            precompute: false,
+            smooth: false,
+            stroke_width: DEFAULT_STROKE_WIDTH,
+        }
+    }
+
+    pub fn points(&mut self, points: &[Point]) -> &mut Self {
+        self.points = Some(Vec::from(points));
+        self
+    }
+
+    pub fn precompute(&mut self) -> &mut Self {
+        self.precompute = true;
+        self
+    }
+
+    pub fn smooth(&mut self) -> &mut Self {
+        self.smooth = true;
+        self
+    }
+
+    pub fn stroke_width(&mut self, stroke_width: f64) -> &mut Self {
+        self.stroke_width = stroke_width;
+        self
+    }
+
+    pub fn build(&self) -> GeomResult<Poly> {
+        if let Some(ps) = &self.points {
+            if ps.len() < 2 {
+                return Err(GeomError::malformed_path("TODO"));
+            }
+
+            let mut poly = if self.smooth {
+                Poly::new_smooth(&ps)
+            } else {
+                Poly::new(&ps)?
+            };
+
+            poly.stroke_width = self.stroke_width;
+
+            if self.precompute {
+                poly.bounding_box = Some(poly.inner().bounding_box());
+            }
+
+            Ok(poly)
+        } else {
+            Err(GeomError::malformed_path("TODO"))
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Poly {
     inner: BezPath,
+    bounding_box: Option<kurbo::Rect>,
     stroke_width: f64,
 }
 
@@ -25,6 +88,7 @@ impl Poly {
         }
         Ok(Self {
             inner,
+            bounding_box: None,
             stroke_width: DEFAULT_STROKE_WIDTH,
         })
     }
@@ -35,6 +99,7 @@ impl Poly {
     pub fn new_smooth(points: &[Point]) -> Self {
         Poly {
             inner: Path::from_points_smooth_closed(points).as_bezpath(),
+            bounding_box: None,
             stroke_width: DEFAULT_STROKE_WIDTH,
         }
     }
@@ -43,6 +108,7 @@ impl Poly {
         let ts = kurbo::TranslateScale::new(translation, 1.0);
         Self {
             inner: ts * self.inner.clone(),
+            bounding_box: None,
             stroke_width: self.stroke_width,
         }
     }
