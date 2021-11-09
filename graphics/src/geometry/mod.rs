@@ -73,7 +73,7 @@ impl Shape {
         self.inner().stroke()
     }
 
-    pub fn to_lines(&self) -> Vec<Line> {
+    pub fn to_lines(&self) -> GeomResult<Vec<Line>> {
         self.inner().to_lines()
     }
 
@@ -244,7 +244,7 @@ pub trait Shaped {
         Path::from_commands(path_elements.as_slice())
     }
 
-    fn to_lines(&self) -> Vec<Line> {
+    fn to_lines(&self) -> GeomResult<Vec<Line>> {
         let mut path_elements = vec![];
         let callback = |el: PathEl| path_elements.push(el);
         flatten(
@@ -252,7 +252,8 @@ pub trait Shaped {
             DEFAULT_TOLERANCE,
             callback,
         );
-        let p = Path::from_commands(path_elements.as_slice()).unwrap();
+
+        let p = Path::from_commands(path_elements.as_slice())?;
         let bez = p.inner();
         let mut lines = Vec::new();
         for seg in bez.segments() {
@@ -261,7 +262,7 @@ pub trait Shaped {
                 _ => panic!(),
             }
         }
-        lines
+        Ok(lines)
     }
     //fn to_lines(&self) -> GeomResult<Path>;
 }

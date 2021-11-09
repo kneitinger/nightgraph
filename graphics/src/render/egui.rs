@@ -62,13 +62,16 @@ impl EguiRenderable for Shape {
                 }
                 let lines = self.to_lines();
 
-                lines
-                    .iter()
-                    .map(|line| EguiShape::LineSegment {
-                        points: [p(&line.p0()), p(&line.p1())],
-                        stroke: Stroke::new(self.stroke() as f32, WHITE),
-                    })
-                    .collect()
+                match lines {
+                    Ok(ls) => ls
+                        .iter()
+                        .map(|line| EguiShape::LineSegment {
+                            points: [p(&line.p0()), p(&line.p1())],
+                            stroke: Stroke::new(self.stroke() as f32, WHITE),
+                        })
+                        .collect(),
+                    _ => vec![],
+                }
             }
         }
     }
