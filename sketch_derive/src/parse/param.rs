@@ -92,7 +92,7 @@ impl SketchParam {
 
         // Handle clap default vals
         match &self.param_attrs.default {
-            None => Some(quote! { #[clap(short,long)] }),
+            None => Some(quote! { #[clap(long)] }),
             Some(lit_def) => {
                 if let syn::Lit::Bool(litbool) = lit_def {
                     if litbool.value() {
@@ -101,14 +101,14 @@ impl SketchParam {
                         // be observed to detect conflicts
                         let negated_param_name = format!("no-{}", param_name);
                         Some(
-                            quote! { #[clap(short, long=#negated_param_name, parse(from_flag = std::ops::Not::not))] },
+                            quote! { #[clap(long=#negated_param_name, parse(from_flag = std::ops::Not::not))] },
                         )
                     } else {
-                        Some(quote! { #[clap(short,long=#param_name)] })
+                        Some(quote! { #[clap(long=#param_name)] })
                     }
                 } else {
                     // Non-bool
-                    Some(quote! { #[clap(short, long=#param_name, default_value_t=#lit_def)] })
+                    Some(quote! { #[clap(long=#param_name, default_value_t=#lit_def)] })
                 }
             }
         }
