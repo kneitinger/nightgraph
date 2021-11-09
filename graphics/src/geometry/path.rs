@@ -19,7 +19,7 @@ pub struct PathBuilder {
 }
 
 impl PathBuilder {
-    pub fn new() -> PathBuilder {
+    pub fn new() -> Self {
         Self {
             points: vec![],
             closed: false,
@@ -62,11 +62,11 @@ impl PathBuilder {
         self
     }
 
-    fn bez_from_points_smooth(points: &[Point], closed: bool) -> GeomResult<BezPath> {
+    fn bez_from_points_smooth(points: &[Point]) -> GeomResult<BezPath> {
         use std::cmp::Ordering;
         match points.len().cmp(&2) {
             Ordering::Less => Err(GeomError::path_error("path requires at least 2 points")),
-            Ordering::Equal => Self::bez_from_points(points, closed),
+            Ordering::Equal => Self::bez_from_points(points, false),
             Ordering::Greater => {
                 let xs: Vec<f64> = points.iter().map(|p| p.x).collect();
                 let ys: Vec<f64> = points.iter().map(|p| p.y).collect();
@@ -78,6 +78,38 @@ impl PathBuilder {
                     let c2 = point(cp2_xs[i - 1], cp2_ys[i - 1]);
                     cmds.push(PathEl::CurveTo(c1, c2, points[i]));
                 }
+                Ok(BezPath::from_vec(cmds))
+            }
+        }
+    }
+
+    fn bez_from_points_smooth_closed(points: &[Point]) -> GeomResult<BezPath> {
+        use std::cmp::Ordering;
+        match points.len().cmp(&2) {
+            Ordering::Less => Err(GeomError::path_error("path requires at least 2 points")),
+            Ordering::Equal => Self::bez_from_points(points, false),
+            Ordering::Greater => {
+                let knots = {
+                    let mut v = points.to_vec();
+                    for &item in points {
+                        v.push(item);
+                    }
+                    v
+                };
+
+                let xs: Vec<f64> = knots.iter().map(|p| p.x).collect();
+                let ys: Vec<f64> = knots.iter().map(|p| p.y).collect();
+                let (cp1_xs, cp2_xs) = smoothing_control_values(&xs);
+                let (cp1_ys, cp2_ys) = smoothing_control_values(&ys);
+                let mut cmds = vec![PathEl::MoveTo(knots[knots.len() / 2 - 3])];
+                let start = knots.len() / 2 - 2;
+                let end = knots.len() - 2;
+                for i in start..end {
+                    let c1 = point(cp1_xs[i - 1], cp1_ys[i - 1]);
+                    let c2 = point(cp2_xs[i - 1], cp2_ys[i - 1]);
+                    cmds.push(PathEl::CurveTo(c1, c2, knots[i]));
+                }
+                cmds.push(PathEl::ClosePath);
                 Ok(BezPath::from_vec(cmds))
             }
         }
@@ -119,7 +151,13 @@ impl PathBuilder {
         let inner = match self.mode {
             PathBuildMode::Cmds => Self::bez_from_commands(&self.cmds, self.closed),
             PathBuildMode::Points => Self::bez_from_points(&self.points, self.closed),
-            PathBuildMode::PointsSmooth => Self::bez_from_points_smooth(&self.points, self.closed),
+            PathBuildMode::PointsSmooth => {
+                if self.closed {
+                    Self::bez_from_points_smooth_closed(&self.points)
+                } else {
+                    Self::bez_from_points_smooth(&self.points)
+                }
+            }
             PathBuildMode::Unknown => GeomResult::Err(GeomError::path_error("TODO: fill me in")),
         }?;
 
