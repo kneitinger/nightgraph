@@ -18,7 +18,7 @@ pub use ellipse::Ellipse;
 pub use error::*;
 pub use line::Line;
 pub use path::{Path, PathBuilder};
-pub use poly::Poly;
+pub use poly::{Poly, PolyBuilder};
 pub use text::TextBuilder;
 
 /// Convenience function to allow making `Point`s quickly
