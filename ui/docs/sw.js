@@ -1,9 +1,9 @@
-var cacheName = 'nightgraphics-ui-pwa';
+var cacheName = 'nightgraph-ui-pwa';
 var filesToCache = [
   './',
   './index.html',
-  './nightgraphics_ui.js',
-  './nightgraphics_ui_bg.wasm',
+  './nightgraph_ui.js',
+  './nightgraph_ui_bg.wasm',
 ];
 
 /* Start the service worker and cache all of the app's content */

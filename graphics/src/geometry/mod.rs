@@ -31,7 +31,7 @@ pub fn avg_point(p1: Point, p2: Point) -> Point {
     point((p1.x + p2.x) / 2., (p1.y + p2.y) / 2.)
 }
 
-pub const DEFAULT_TOLERANCE: f64 = 1e-1;
+pub const DEFAULT_TOLERANCE: f64 = 1e-2;
 pub const DEFAULT_STROKE_WIDTH: f64 = 0.45 * crate::units::MM;
 
 pub enum Shape {
@@ -264,5 +264,4 @@ pub trait Shaped {
         }
         Ok(lines)
     }
-    //fn to_lines(&self) -> GeomResult<Path>;
 }

@@ -58,7 +58,6 @@ impl Sketch for Blossom {
                 let sin_mod = sine_wave(0.75 * INCH, 5., step_prog, 0. * PI)
                     * exp_dec(4., level_prog)
                     + sine_wave(0.25 * INCH, 15., step_prog, PI / 2.) * exp_dec(5., level_prog);
-                //+ sine_wave(1. * INCH, 2., step_prog, 1.5*PI) * exp_dec(5., level_prog);
                 let dist = (base_dist + sin_mod) * Vec2::from_angle(th);
                 points.push(center + dist);
             }
