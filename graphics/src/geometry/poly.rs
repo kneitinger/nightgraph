@@ -46,9 +46,9 @@ impl PolyBuilder {
             }
 
             let mut poly = if self.smooth {
-                Poly::new_smooth(&ps)
+                Poly::new_smooth(ps)
             } else {
-                Poly::new(&ps)?
+                Poly::new(ps)?
             };
 
             poly.stroke_width = self.stroke_width;

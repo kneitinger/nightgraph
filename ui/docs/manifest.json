@@ -1,6 +1,6 @@
 {
-    "name": "Nightgraphics UI PWA",
-    "short_name": "nightgraphics-ui-pwa",
+    "name": "Nightgraph UI PWA",
+    "short_name": "nightgraph-ui-pwa",
     "lang": "en-US",
     "start_url": "./index.html",
     "display": "standalone",
