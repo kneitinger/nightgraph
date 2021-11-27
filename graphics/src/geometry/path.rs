@@ -187,7 +187,7 @@ impl Default for PathBuilder {
 pub struct Path {
     inner: BezPath,
     bounding_box: Option<kurbo::Rect>,
-    stroke_width: f64,
+    pub stroke_width: f64,
 }
 
 impl From<BezPath> for Path {
