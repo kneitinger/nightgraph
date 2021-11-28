@@ -148,7 +148,7 @@ impl Drawing {
     }
 
     pub fn settings_grid(&mut self, ui: &mut egui::Ui) {
-        egui::Grid::new("view_settings_grid")
+        egui::Grid::new("canvas_settings_grid")
             .num_columns(2)
             .striped(false)
             .show(ui, |ui| {

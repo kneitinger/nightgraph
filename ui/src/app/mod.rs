@@ -12,7 +12,6 @@ use sketch_control::*;
 
 #[cfg_attr(feature = "persistence", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "persistence", serde(default))]
-#[derive(Default)]
 pub struct NightgraphApp {
     // Temporarily opt out of state persistence on drawing until the sketch
     // and associated info is actually stored in the app state
@@ -22,7 +21,17 @@ pub struct NightgraphApp {
     #[serde(skip)]
     sketch_control: SketchControl,
 
-    ui_scale: Option<f32>,
+    ui_scale: f32,
+}
+
+impl Default for NightgraphApp {
+    fn default() -> Self {
+        Self {
+            drawing: Drawing::default(),
+            sketch_control: SketchControl::default(),
+            ui_scale: 1.5,
+        }
+    }
 }
 
 impl NightgraphApp {
@@ -67,6 +76,21 @@ impl NightgraphApp {
 
         ctx.set_fonts(fonts);
     }
+
+    pub fn app_settings_grid(&mut self, ui: &mut egui::Ui) {
+        egui::Grid::new("app_settings_grid")
+            .num_columns(2)
+            .striped(false)
+            .show(ui, |ui| {
+                ui.label("Draw debug geometry");
+                ui.add(
+                    egui::DragValue::new(&mut self.ui_scale)
+                        .speed(0.01)
+                        .clamp_range(1.0..=2.25),
+                );
+                ui.end_row();
+            });
+    }
 }
 
 impl epi::App for NightgraphApp {
@@ -100,7 +124,7 @@ impl epi::App for NightgraphApp {
     }
 
     fn update(&mut self, ctx: &egui::CtxRef, _frame: &mut epi::Frame<'_>) {
-        ctx.set_pixels_per_point(1.5);
+        ctx.set_pixels_per_point(self.ui_scale);
 
         egui::SidePanel::left("side_panel")
             //.default_width(240.0)
@@ -111,11 +135,16 @@ impl epi::App for NightgraphApp {
 
                 ui.add(egui::Separator::default().spacing(15.));
 
-                ui.collapsing("View Settings", |ui| {
-                    self.drawing.settings_grid(ui);
-                });
-                ui.collapsing("Sketch Settings", |ui| {
-                    self.sketch_control.param_grid(ui);
+                egui::ScrollArea::vertical().show(ui, |ui| {
+                    ui.collapsing("App Settings", |ui| {
+                        self.app_settings_grid(ui);
+                    });
+                    ui.collapsing("Canvas Settings", |ui| {
+                        self.drawing.settings_grid(ui);
+                    });
+                    ui.collapsing("Sketch Settings", |ui| {
+                        self.sketch_control.param_grid(ui);
+                    });
                 });
                 if self.sketch_control.needs_render {
                     self.drawing.rerender(self.sketch_control.render().unwrap());
