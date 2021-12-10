@@ -9,6 +9,12 @@ pub struct PolyBuilder {
     precompute: bool,
 }
 
+impl Default for PolyBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PolyBuilder {
     pub fn new() -> Self {
         Self {
