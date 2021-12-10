@@ -118,8 +118,8 @@ impl Sketch for Weather {
         let ellipse_rings = self.ripple(center, self.freq);
         for e in ellipse_rings {
             let mut p = e.to_path();
-            for n in 0..line_count {
-                p = p.difference(&text_paths[n]);
+            for tp in text_paths.iter() {
+                p = p.difference(tp);
             }
             canvas.add(p);
         }
