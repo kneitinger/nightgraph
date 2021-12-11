@@ -22,6 +22,9 @@ pub struct ParamMetadata {
     /// The range of appropriate values for this parameter. Only meaningful
     /// for numeric types
     pub range: Option<ParamRange>,
+
+    /// The default value of the parameter
+    pub default: ParamDefault,
 }
 
 /// Describes the type kind of the parameter.
@@ -35,6 +38,19 @@ pub enum ParamKind {
     UInt,
     Bool,
     Unsupported,
+}
+
+/// Describes the default value of the parameter
+///
+/// This is used to allow the parameters' UI controls in `nightgraph-ui` to be
+/// reset to their default values
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub enum ParamDefault {
+    Int(i64),
+    Float(f64),
+    UInt(u64),
+    Bool(bool),
+    None,
 }
 
 /// Describes the range of appropriate values for numeric parameters.
