@@ -48,52 +48,74 @@ impl SketchControl {
 
         for param in &self.params {
             let sketch = &mut self.sketch;
+            let needs_render = &mut self.needs_render;
             let id = param.id;
             match param.kind {
                 ParamKind::Int => {
                     ui.label(param.name);
-                    let val = sketch.mut_int_by_id(id).unwrap();
-                    let init = *val;
-                    let dragval = if let Some(ParamRange::Int(range)) = &param.range {
-                        egui::widgets::DragValue::new(val).clamp_range(range.to_owned())
-                    } else {
-                        egui::widgets::DragValue::new(val)
-                    };
-                    ui.add(dragval);
-                    if *val != init {
-                        self.needs_render = true;
-                        //drawing.rerender(sketch.exec().unwrap().render_egui());
-                    }
+                    ui.horizontal(|ui| {
+                        let val = sketch.mut_int_by_id(id).unwrap();
+                        let init = *val;
+                        let dragval = if let Some(ParamRange::Int(range)) = &param.range {
+                            egui::widgets::DragValue::new(val).clamp_range(range.to_owned())
+                        } else {
+                            egui::widgets::DragValue::new(val)
+                        };
+                        ui.add(dragval);
+                        if ui.button("↺").clicked() {
+                            *val = match param.default {
+                                ParamDefault::Int(i) => i,
+                                _ => Default::default(),
+                            }
+                        }
+                        if *val != init {
+                            *needs_render = true;
+                        }
+                    });
                 }
                 ParamKind::Float => {
                     ui.label(param.name);
-                    let val = sketch.mut_float_by_id(id).unwrap();
-                    let init = *val;
-                    let dragval = if let Some(ParamRange::Float(range)) = &param.range {
-                        egui::widgets::DragValue::new(val).clamp_range(range.to_owned())
-                    } else {
-                        egui::widgets::DragValue::new(val)
-                    };
-                    ui.add(dragval);
-                    if (*val - init).abs() > f64::EPSILON {
-                        self.needs_render = true;
-                        //drawing.rerender(sketch.exec().unwrap().render_egui());
-                    }
+                    ui.horizontal(|ui| {
+                        let val = sketch.mut_float_by_id(id).unwrap();
+                        let init = *val;
+                        let dragval = if let Some(ParamRange::Float(range)) = &param.range {
+                            egui::widgets::DragValue::new(val).clamp_range(range.to_owned())
+                        } else {
+                            egui::widgets::DragValue::new(val)
+                        };
+                        ui.add(dragval);
+                        if ui.button("↺").clicked() {
+                            *val = match param.default {
+                                ParamDefault::Float(f) => f,
+                                _ => Default::default(),
+                            }
+                        }
+                        if (*val - init).abs() > f64::EPSILON {
+                            *needs_render = true;
+                        }
+                    });
                 }
                 ParamKind::UInt => {
                     ui.label(param.name);
-                    let val = sketch.mut_uint_by_id(id).unwrap();
-                    let init = *val;
-                    let dragval = if let Some(ParamRange::Int(range)) = &param.range {
-                        egui::widgets::DragValue::new(val).clamp_range(range.to_owned())
-                    } else {
-                        egui::widgets::DragValue::new(val)
-                    };
-                    ui.add(dragval);
-                    if *val != init {
-                        self.needs_render = true;
-                        //drawing.rerender(sketch.exec().unwrap().render_egui());
-                    }
+                    ui.horizontal(|ui| {
+                        let val = sketch.mut_uint_by_id(id).unwrap();
+                        let init = *val;
+                        let dragval = if let Some(ParamRange::Int(range)) = &param.range {
+                            egui::widgets::DragValue::new(val).clamp_range(range.to_owned())
+                        } else {
+                            egui::widgets::DragValue::new(val)
+                        };
+                        ui.add(dragval);
+                        if ui.button("↺").clicked() {
+                            *val = match param.default {
+                                ParamDefault::UInt(i) => i,
+                                _ => Default::default(),
+                            }
+                        }
+                        if *val != init {
+                            *needs_render = true;
+                        }
+                    });
                 }
                 ParamKind::Bool => {
                     // Checkbox/Label Button box by default
@@ -101,11 +123,18 @@ impl SketchControl {
                     let init = *val;
 
                     ui.label(param.name);
-                    ui.add(egui::widgets::Checkbox::new(val, ""));
-                    if *val != init {
-                        self.needs_render = true;
-                        //drawing.rerender(sketch.exec().unwrap().render_egui());
-                    }
+                    ui.horizontal(|ui| {
+                        ui.add(egui::widgets::Checkbox::new(val, ""));
+                        if ui.button("↺").clicked() {
+                            *val = match param.default {
+                                ParamDefault::Bool(b) => b,
+                                _ => Default::default(),
+                            }
+                        }
+                        if *val != init {
+                            *needs_render = true;
+                        }
+                    });
                 }
                 // TODO: Showing a label with param name and unsupported would by nice
                 ParamKind::Unsupported => {}
@@ -116,7 +145,7 @@ impl SketchControl {
     pub fn param_grid(&mut self, ui: &mut egui::Ui) {
         egui::Grid::new("params_grid")
             .num_columns(2)
-            .spacing([55.0, 4.0])
+            .spacing([20.0, 4.0])
             .striped(false)
             .show(ui, |ui| self.param_grid_contents(ui));
     }
