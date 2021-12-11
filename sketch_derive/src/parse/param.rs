@@ -61,7 +61,31 @@ impl SketchParam {
             _ => quote!(ParamKind::Unsupported),
         };
 
-        quote!(ParamMetadata { id: #id, name: #name_str, description: #desc, kind: #kind, range: #range})
+        let default_val = match &param_attrs.default {
+            Some(lit) => quote!(#lit),
+            None => quote!(Default::default()),
+        };
+
+        let default = match ty {
+            syn::Type::Path(tp) => match tp.path.segments[0].ident.to_string().as_str() {
+                "isize" | "i128" | "i64" | "i32" | "i16" | "i8" => {
+                    quote!(ParamDefault::Int(#default_val))
+                }
+                "usize" | "u128" | "u64" | "u32" | "u16" | "u8" => {
+                    quote!(ParamDefault::UInt(#default_val))
+                }
+                "f64" | "f32" => {
+                    quote!(ParamDefault::Float(#default_val))
+                }
+                "bool" => {
+                    quote!(ParamDefault::Bool(#default_val))
+                }
+                _ => quote!(ParamDefault::None),
+            },
+            _ => quote!(ParamDefault::None),
+        };
+
+        quote!(ParamMetadata { id: #id, name: #name_str, description: #desc, kind: #kind, range: #range, default: #default})
     }
 
     fn generate_secondary_attrs(&self) -> Option<TokenStream> {
