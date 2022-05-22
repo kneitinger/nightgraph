@@ -11,7 +11,7 @@ svg = "0.10"
 rusttype = "0.9"
 # egui's default features includes bundled fonts, which we do not need
 egui = { version = "0.15", default-features = false, features = ["single_threaded"] }
-kurbo = "~0.8.2"
+kurbo = "~0.8.3"
 itertools = "0.10"
 
 [dev-dependencies]

@@ -1,6 +1,6 @@
 use super::utils::tokens_or_none;
 use super::ParamAttrs;
-use heck::KebabCase;
+use heck::ToKebabCase;
 use proc_macro2::TokenStream;
 use proc_macro_error::abort;
 use quote::{quote, ToTokens};
