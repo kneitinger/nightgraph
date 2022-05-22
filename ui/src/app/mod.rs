@@ -1,7 +1,6 @@
 use eframe::{
     egui,
-    egui::{FontDefinitions, FontFamily, Style},
-    epi,
+    egui::{FontData, FontDefinitions, FontFamily, Style},
 };
 
 mod drawing;
@@ -35,41 +34,58 @@ impl Default for NightgraphApp {
 }
 
 impl NightgraphApp {
-    fn setup_fonts(&mut self, ctx: &egui::CtxRef) {
+    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        let mut app = Self::default();
+        #[cfg(feature = "persistence")]
+        if let Some(storage) = cc.storage {
+            app = eframe::get_value(storage, eframe::APP_KEY).unwrap_or_default()
+        }
+
+        app.setup_fonts(&cc.egui_ctx);
+
+        let style = Style {
+            visuals: egui::Visuals::light(),
+            ..Default::default()
+        };
+        cc.egui_ctx.set_style(style);
+        app
+    }
+
+    fn setup_fonts(&mut self, ctx: &egui::Context) {
         let mut fonts = FontDefinitions::default();
         fonts.font_data.insert(
             "Jost*".to_owned(),
-            std::borrow::Cow::Borrowed(include_bytes!("../../../assets/fonts/Jost-400-Book.otf")),
+            FontData::from_static(include_bytes!("../../../assets/fonts/Jost-400-Book.otf")),
         );
         fonts.font_data.insert(
             "Monofur".to_owned(),
-            std::borrow::Cow::Borrowed(include_bytes!("../../../assets/fonts/Monofur_Regular.ttf")),
+            FontData::from_static(include_bytes!("../../../assets/fonts/Monofur_Regular.ttf")),
         );
 
         // Place prop font at the highest priority for proportional
         fonts
-            .fonts_for_family
+            .families
             .get_mut(&FontFamily::Proportional)
             .unwrap()
             .insert(0, "Jost*".to_owned());
 
         // Place prop font at the lowest priority for monospace
         fonts
-            .fonts_for_family
+            .families
             .get_mut(&FontFamily::Monospace)
             .unwrap()
             .push("Jost*".to_owned());
 
         // Place mono font at the lowest priority for proportional
         fonts
-            .fonts_for_family
+            .families
             .get_mut(&FontFamily::Proportional)
             .unwrap()
             .push("Monofur".to_owned());
 
         // Place mono font at the highest priority for monospace
         fonts
-            .fonts_for_family
+            .families
             .get_mut(&FontFamily::Monospace)
             .unwrap()
             .insert(0, "Monofur".to_owned());
@@ -93,37 +109,13 @@ impl NightgraphApp {
     }
 }
 
-impl epi::App for NightgraphApp {
-    fn name(&self) -> &str {
-        "nightgraph ui"
-    }
-
-    fn setup(
-        &mut self,
-        ctx: &egui::CtxRef,
-        _frame: &mut epi::Frame<'_>,
-        _storage: Option<&dyn epi::Storage>,
-    ) {
-        #[cfg(feature = "persistence")]
-        if let Some(storage) = _storage {
-            *self = epi::get_value(storage, epi::APP_KEY).unwrap_or_default()
-        }
-
-        self.setup_fonts(ctx);
-
-        let style = Style {
-            visuals: egui::Visuals::light(),
-            ..Default::default()
-        };
-        ctx.set_style(style);
-    }
-
+impl eframe::App for NightgraphApp {
     #[cfg(feature = "persistence")]
-    fn save(&mut self, storage: &mut dyn epi::Storage) {
-        epi::set_value(storage, epi::APP_KEY, self);
+    fn save(&mut self, storage: &mut dyn eframe::Storage) {
+        eframe::set_value(storage, eframe::APP_KEY, self);
     }
 
-    fn update(&mut self, ctx: &egui::CtxRef, _frame: &mut epi::Frame<'_>) {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         ctx.set_pixels_per_point(self.ui_scale);
 
         egui::SidePanel::left("side_panel")
@@ -155,7 +147,7 @@ impl epi::App for NightgraphApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             egui::Frame::dark_canvas(ui.style())
                 .fill(self.drawing.bg_color)
-                .margin((0., 0.))
+                .inner_margin(0.)
                 .show(ui, |ui| {
                     self.drawing.ui_content(ui);
                 });

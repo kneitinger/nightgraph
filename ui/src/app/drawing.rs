@@ -51,7 +51,7 @@ impl Drawing {
         self.shapes = shapes;
         self.sketch_rect = egui::Rect::from_min_size(Pos2::ZERO, sketch_size);
     }
-    fn translate_scale(&mut self, transformation: egui::math::RectTransform) -> Vec<EguiShape> {
+    fn translate_scale(&mut self, transformation: egui::emath::RectTransform) -> Vec<EguiShape> {
         self.shapes
             .iter()
             .map(|shape| match shape {
@@ -72,7 +72,7 @@ impl Drawing {
                 ),
                 EguiShape::Rect(rect) => EguiShape::rect_stroke(
                     transformation.transform_rect(rect.rect),
-                    rect.corner_radius,
+                    rect.rounding,
                     egui::Stroke {
                         color: rect.stroke.color,
                         width: transformation.scale().x * rect.stroke.width,
@@ -114,7 +114,7 @@ impl Drawing {
             self.translation -= response.drag_delta() / self.zoom;
         }
 
-        let to_screen = egui::math::RectTransform::from_to(
+        let to_screen = egui::emath::RectTransform::from_to(
             egui::Rect::from_center_size(
                 phy_rect.center() + self.translation,
                 phy_rect.size() / self.zoom,
