@@ -11,6 +11,6 @@ license = "MIT"
 [dependencies]
 nightgraphics = { path = "../graphics" }
 nightsketch = { path = "../sketch", features = ["cli"] }
-clap = {version = "3.0.0-rc.0", features = ["derive", "cargo"] }
+clap = {version = "3.1", features = ["derive", "cargo"] }
 serde = {version = "1.0", features = ["derive"] }
 serde_json = { version = "1.0"}
