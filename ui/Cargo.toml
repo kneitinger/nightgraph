@@ -11,7 +11,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 # eframe's default features includes bundled fonts, which we do not need
-eframe = { version = "0.15" }
+eframe = { version = "0.18" }
 nightgraphics = { path = "../graphics" }
 nightsketch = { path = "../sketch" }
 serde = {version = "1.0", features = ["derive"] }
